@@ -1,1 +1,0 @@
-Lista de comandos para começar a dar os primeiros passos no istio
