@@ -89,4 +89,104 @@ metadata:
   namespace: default
 spec:
   mtls:
-    : STRICT
+    mode: STRICT
+
+Aplique o peer-auth;
+\_kubectl apply -f peer-auth.yaml
+
+Agora vamos voltar ao pod de test e rodar o comando mais uma vez;
+\_kubectl exec -ti -n test test -- /bin/bash
+  \_root@test:/# curl --head productpage.default.svc.cluster.local:9080
+    curl: (56) Recv failure: Connection reset by peer
+    \_Veja que a saida agora é uma conection reset by peer
+
+Show, isso é pq agora o trafego tem que ser mtls conforme descreve o arquivo peer....yaml que aplicamos.
+Para que as coisas voltem ao normal e as duas apps possam se comunicar, vamos injetar o istio no name space de test.
+Rode o comando;
+\_kubectl label namespace test istio-injection=enabled
+  \_Verifique as labels;
+     \_kubectl get ns --show-labels
+       \_A saida deve ser algo parecido com;
+NAME              STATUS   AGE   LABELS
+default           Active   19d   istio-injection=enabled,kubernetes.io/metadata.name=default
+istio-system      Active   16d   kubernetes.io/metadata.name=istio-system
+kube-node-lease   Active   19d   kubernetes.io/metadata.name=kube-node-lease
+kube-public       Active   19d   kubernetes.io/metadata.name=kube-public
+kube-system       Active   19d   kubernetes.io/metadata.name=kube-system
+test              Active   19h   istio-injection=enabled,kubernetes.io/metadata.name=test
+
+Agora delete o pod test;
+\_kubectl -n test delete pod test
+  \_Crie novamente;
+    \_kubectl run test --image=nginx -n test
+
+Agora com pod 2/2 devido o istio estar injetado.
+Entre novamente no pod;
+\_kubectl exec -ti -n test test -- /bin/bash
+  \_Rode o curl novamente;
+    \_curl --head productpage.default.svc.cluster.local:9080
+      \_A saida deve ser um 200, algo parecido com o exemplo abaixo;
+HTTP/1.1 200 OK
+content-type: text/html; charset=utf-8
+content-length: 1683
+server: envoy
+date: Thu, 31 Jul 2025 20:20:49 GMT
+x-envoy-upstream-service-time: 54
+
+Show, vamos em frente e agora vamos criar um sidecar.
+Crie o yaml sidecar_default_namespace.yaml com o seguinte conteudo;
+apiVersion: networking.istio.io/v1beta1
+kind: Sidecar
+metadata:
+  name: default
+  namespace: test
+spec:
+  egress:
+  - hosts:
+    - "./*"
+    - "istio-system/*"
+
+Agora aplique;
+\_kubectl apply -f sidecar_default_namespace.yaml
+
+Entre novamente no pod de test;
+\_kubectl exec -ti -n test test -- /bin/bash
+  \_Roda novamente o curl;
+    \_root@test:/# curl --head productpage.default.svc.cluster.local:9080
+      \_A resposta esperada é algo parecido com o exemplo abaixo;
+        curl: (52) Empty reply from server
+
+Isso por que o sidecar desse namespace não permite trafego de saida para o namespace default, altere o
+sidecar_default_namespace.yaml e adicione o namespace default;
+\_vim sidecar_default_namespace.yaml
+apiVersion: networking.istio.io/v1beta1
+kind: Sidecar
+metadata:
+  name: default
+  namespace: test
+spec:
+  egress:
+  - hosts:
+    - "./*"
+    - "default/*"
+    - "istio-system/*"
+
+Aplique;
+\_kubectl apply -f sidecar_default_namespace.yaml
+  Entre novamente no pod de test;
+  \_kubectl exec -ti -n test test -- /bin/bash
+    E roda novamente o curl de test;
+    \_curl --head productpage.default.svc.cluster.local:9080
+      \_A saida é algo parecido com o exemplo abaixo;
+HTTP/1.1 200 OK
+content-type: text/html; charset=utf-8
+content-length: 1683
+server: envoy
+date: Thu, 31 Jul 2025 20:50:39 GMT
+x-envoy-upstream-service-time: 21
+
+É isso por enquanto é só, isso foi para termos nosso primeiro contato com o gerenciamento de trafego começar a entender a comunicação no cluster quando utilizamos o istio.
+
+Vamos em frente e agora, vamos começar a entender  Virtual Services, vá para o diretório do Virtual Service e continue aprendendo. 
+
+Forte abraço, tudo de bom. =)
