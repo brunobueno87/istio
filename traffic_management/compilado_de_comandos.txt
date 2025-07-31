@@ -1,0 +1,92 @@
+Vamos começar ententendo o trafico no cluster com o mesh habilitado.
+Então nosso objetivo aqui será, primeiro subir uma aplicação demo no
+name space default com o istio injetado nesse namaspace.
+Depois iremos criar um novo name space com o nome de test e nesse namespace
+iremos criar um pod de test do nginx. Lembrando que esse segundo namespace
+não injetaremos o istio.
+
+Sendo assim, vamos em frente...
+
+Verifique o namespace default, possui o istio injetado;
+\_#kubectl get ns --show-labels
+\_A saída deve ser algo parecido com isso;
+NAME              STATUS   AGE     LABELS
+default           Active   18d     istio-injection=enabled,kubernetes.io/metadata.name=default
+istio-system      Active   16d     kubernetes.io/metadata.name=istio-system
+kube-node-lease   Active   18d     kubernetes.io/metadata.name=kube-node-lease
+kube-public       Active   18d     kubernetes.io/metadata.name=kube-public
+kube-system       Active   18d     kubernetes.io/metadata.name=kube-system
+
+Como eu creio que você já passou pelo passo a passo de instalar e configurar o istio creio que sua saida esta parecida com a minha.
+
+Agora vamos entregar a aplicação demo no namespace default;
+\_kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.11/samples/bookinfo/platform/kube/bookinfo.yaml
+
+Verifique se os pods agora estão 2/2 no name spacedefault;
+\_ kubectl -n default get pods
+NAME                              READY   STATUS    RESTARTS   AGE
+details-v1-845dbb5df6-bnwnt       2/2     Running   0          26m
+productpage-v1-6997d9c98b-qlnj2   2/2     Running   0          26m
+ratings-v1-776d9dddb4-gf7jr       2/2     Running   0          9m37s
+reviews-v1-7f594844b-ssgc6        2/2     Running   0          26m
+reviews-v2-ff5bdfd46-p2bkc        2/2     Running   0          11m
+reviews-v3-5fc846cc6b-jwv69       2/2     Running   0          11m
+
+
+Show, isso valida que os pods estão ok, e rodando com  o sidecar junto.
+Vamos em frente e vamos criar o namespace test;
+\_#kubectl create ns test
+
+Agora verifique que esse novo namespace não possui o istio injetado;
+\_kubectl get ns --show-labels
+NAME              STATUS   AGE   LABELS
+default           Active   18d   istio-injection=enabled,kubernetes.io/metadata.name=default
+istio-system      Active   16d   kubernetes.io/metadata.name=istio-system
+kube-node-lease   Active   18d   kubernetes.io/metadata.name=kube-node-lease
+kube-public       Active   18d   kubernetes.io/metadata.name=kube-public
+kube-system       Active   18d   kubernetes.io/metadata.name=kube-system
+test              Active   10m   kubernetes.io/metadata.name=test
+
+Show, estando tudo certo agora vamos em frente e vamos criar um pod dentro do namespace test;
+\_kubectl run test --image=nginx -n test
+
+Verifique que esse novo pod por estar em um namespace sem o istio deve constar como 1/1
+Rode o comando;
+\_kubectl -n test get pod
+NAME   READY   STATUS             RESTARTS   AGE
+test   1/1     Running   0          15m
+
+Show, agora vamos ver se existe services no namespace default;
+\_ kubectl get svc -n default 
+NAME          TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+details       ClusterIP   10.97.186.111    <none>        9080/TCP   42m
+kubernetes    ClusterIP   10.96.0.1        <none>        443/TCP    18d
+productpage   ClusterIP   10.111.74.88     <none>        9080/TCP   42m
+ratings       ClusterIP   10.106.222.133   <none>        9080/TCP   42m
+reviews       ClusterIP   10.97.129.218    <none>        9080/TCP   42m
+
+Agora entre no pod de test;
+\_kubectl exec -ti -n test test -- /bin/bash
+root@test:/# curl --head productpage.default.svc.cluster.local:9080
+HTTP/1.1 200 OK
+content-type: text/html; charset=utf-8
+content-length: 1683
+server: istio-envoy
+date: Thu, 31 Jul 2025 01:03:24 GMT
+x-envoy-upstream-service-time: 16
+x-envoy-decorator-operation: productpage.default.svc.cluster.local:9080/*
+
+Você recebe um 200, pq por padrão todo o trafego é liberado mesmo com o mesh habilitado.
+Agora vamos ativar uma coisa chamada authentication peer. (Nó iremos falar sobre isso de forma
+mais aprofundada no modulo de segurança)
+
+Rode o comando;
+\_vim peer-auth.yaml
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: dafault
+  namespace: default
+spec:
+  mtls:
+    : STRICT
