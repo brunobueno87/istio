@@ -1,1 +1,144 @@
 Introdução - Virtual Services
+
+Virtual Services, entregam um controle refinado/detalhado, baseado em headers, URIs, parâmetros de consulta etc.
+E essas são funcionalidades que um service do k8s não pode fazer. Basicamente ele faz a mesma coisa só que melhor.
+
+O service do k8s, apenas encaminha o trafego para os pods, você não tem esse nível de controle de camada 7 apenas no service do k8s. Com o Virtual Services é possível gerenciar o tráfego entre diferentes versões de um serviço, você pode fazer canary release adicionando gradualmente uma nova versão, você pode fazer AB testing que permite espelhar o tráfego, pode fazer Blue-green deployments, mudar o trafego da versão antiga para a nova versão, e tudo isso são coisas que o service do k8s não pode fazer.
+
+Um outro ponto, você também pode utilizar o virtual service para injetar falhas na app, o que é realmente útil para testes de resiliência também podemos configurar retries, timeouts para serviços especificos. E isso ajuda você a gerenciar a confiabilidade da aplicação. Também temos recursos avançaos de load-balancing, que suportam round robin, roteamento ponderado para aqueles lançamentos canários ou A/B testing, você pode fazer least connections, etc...
+
+Em resumo você ganha um nível de controle e flexibilidade que no K8S service, você não tem.
+
+Hands on Virtual Services
+
+Vamos configurar 1 Virtual Services bem simples para ir progredindo no seu entendimento. Comece verificando se existe istio habilitado no seu namespace;
+\_kubectl get ns --show-labels
+  \_Confirme que o istio está habilitado.
+    \_default  Active  20d  istio-injection=enabled,kubernetes.io/metadata.name=default
+
+
+Show vamos em frente e vamos entregar uma aplicação de teste no namespace default;
+\_kubectl apply -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/httpbin/httpbin.yaml
+
+Verifique;
+\_kubectl -n default get pod
+
+Boa, se o namespace test não esta criando crie (mas que o istio não esteja habilitado nele).
+Com o namespace criado vamos entrega uma app de test dentro do namespace test;
+\_kubectl run test --image=nginx -n test
+
+Verifique se esta tudo certo;
+\_kubectl -n test get pod
+
+Estando tudo certo, vamos entrar no pod de test;
+\_kubectl exec -ti -n test test -- /bin/bash
+  \_Dentro do pod de test rode um curl para app httpbin
+    \_curl httpbin.default.svc:8000
+       \_É esperao 200...Caso queira apontar para outro endpoint rode o comando;
+         \_curl httpbin.default.svc:8000/ip
+	    \_É esperado um 200 tbm.
+
+Como já sabemos, o trafego é liberado por default no Istio....show agora vamos em frente e vamos criar nosso primeiro virtual services;
+\_vim virtual_service
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: httpbin
+  namespace: default
+spec:
+  hosts:
+  - httpbin
+  http:
+  - route:
+    - destination:
+        host: httpbin
+        port:
+          number: 8000
+
+Aplique;
+\_kubectl app -f virtual_service.yaml
+  Verifique;
+  \_kubectl get vs
+    \_A saida deve ser algo parecido com o exemplo abaixo;
+      \_NAME      GATEWAYS   HOSTS         AGE
+        httpbin              ["httpbin"]   5m33s
+
+Boa, estando tudo certo vamos em frente e vamos entrar agora no pod de test;
+\_kubectl exec -ti -n test test -- /bin/bash
+  \_Faça uma chamada para o pod de test;
+     \_curl httpbin.default.svc:8000/ip
+       \_É esperado um 200 pois não tem nenhuma restrição nesse virtual service, vamos editalo
+         \_vim virtual_service.yaml
+            \_Modifique a porta para;
+	      \_number: 9000
+                \_Faça uma chamada curl novamente dentro do pod test
+		  \_E a resposta é um 200. A pergunta é pq ?
+
+
+O 200 ainda esta ocorrendo devido o fato de não existir nenhum restrição entre esses namespaces.
+A chamada esta passando pelo service padrão do k8s.
+Sendo assim agora vamos injetar o istio no namespace de test;
+\_kubectl label namespace test istio-injection=enabled
+  \_Remova e crie novamente o pod de test;
+    \_kubectl -n test delete pod test
+    \_kubectl run test --image=nginx -n test
+    \_Verifique;
+    \_kubectl -n test get pod
+    \_Tem que ser uma saida 2/2
+    \_Entre no pod de test;
+    \_kubectl exec -ti -n test test -- /bin/bash
+    \_Faça uma nova chamada curl;
+    \_curl -i httpbin.default.svc:8000
+    \_Agora é esperado uma saida 503 - Verifique.
+
+Volte a porta do virtual service para 8000 e faça uma nova chamada;
+\_vim virtual_service.yaml
+   \_Modifique a porta para 8000
+      \_aplique;
+         \_kubectl apply -f virtual_service.yaml
+	 \_Entre no pod de test novamente;
+	 \_kubectl exec -ti -n test test -- /bin/bash
+	 \_Faça uma nova chamada curl;
+	 \_curl -i httpbin.default.svc:8000
+	 \_Agora é esperado um 200
+
+
+Boa legal agora vamos fazer uma config que se chama rewrite, que nada mais é que criar um match, um novo nome para um nome existente, abaixo vou dar 3 exemplos de chamadas curl, partindo como origem o pod de test;
+\_curl -i httpbin.default.svc:8000/user-agent
+\_curl -i httpbin.default.svc:8000/ip
+\_curl -i httpbin.default.svc:8000/hello
+  \_Observe que a ultima chamada, retorna um 404, o que mostra que esse path não existe. Vamos editar o virtual service. Siga os passos abaixo.
+
+
+Editando o virtual service;
+\_vim virtual_service.yaml
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: httpbin
+  namespace: default
+spec:
+  hosts:
+  - httpbin
+  http:
+  - match:
+    - uri:
+        prefix: /hello
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: httpbin.default.svc.cluster.local
+        port:
+          number: 8000
+
+
+Aplique;
+\_kubectl apply -f virtual_service.yaml
+
+Agora entre novamente no pod de test e faça a chamada para o endpoint /hello;
+\_kubectl exec -ti -n test test -- /bin/bash
+  \_curl -i httpbin.default.svc:8000/hello
+    \_É esperado um 200 agora.
+
+

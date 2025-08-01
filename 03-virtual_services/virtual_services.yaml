@@ -1,15 +1,17 @@
-apiVersion: networking.istio.io/v1
+apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: httpbin
   namespace: default
 spec:
   hosts:
-  -  httpbin
-http:
+  - httpbin
+  http:
   - match:
     - uri:
-        prefix: /
+        prefix: /hello
+    rewrite:
+      uri: /
     route:
     - destination:
         host: httpbin.default.svc.cluster.local
