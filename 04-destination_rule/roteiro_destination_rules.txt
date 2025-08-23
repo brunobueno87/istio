@@ -87,6 +87,77 @@ Boa, agora aplique isso;
 
 Boa...como já sabemos um destination rule é inutil sem um virtual service, então vamos em frente e vamos criar 1;
 \_vim vs.yaml
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: hello-world-vs
+  namespace: default
+spec:
+  hosts:
+  - helloworld
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: helloworld.default.svc.cluster.local
+	port:
+	  number: 5000
+	subset: v1
+      weight: 50
+    - destination:
+        host: helloworld.default.svc.cluster.local
+	port:
+	  number: 5000
+	subset: v2
+      weight: 50
 
+Aplique;
+\_kubectl apply -f vs.yaml
+  \_Verifique;
+     \_kubectl get vs
 
+Boa, volte para o pod de test e faça chamadas curl para a app helloworld e observe a saida;
+\_kubectl exec -ti -n test test -- /bin/bash
+  \_curl helloworld.default.svc:5000/hello
 
+Agora volte a editar o virtualservice e ajuste que 95% das chamadas vá para o v1 e 5% das chamadas vá para o pod v2;
+\_vim vs.yaml
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: hello-world-vs
+  namespace: default
+spec:
+  hosts:
+  - helloworld
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: helloworld.default.svc.cluster.local
+        port:
+          number: 5000
+        subset: v1
+      weight: 95
+    - destination:
+        host: helloworld.default.svc.cluster.local
+        port:
+          number: 5000
+        subset: v2
+      weight: 5
+
+Aplique;
+\_kubectl apply -f vs.yaml
+
+Volte mais uma vez pra o pod de test e rode varias chamadas curl para a app helloworld e veja o resultado;
+\_kubectl exec -ti -n test test -- /bin/bash
+  \_curl helloworld.default.svc:5000/hello
+
+Show, com isso finalizamos um exemplo pratico de Destination Rules.
+Espero que tenha ficado claro e didatico e que você tenha conseguido replicar com sucesso.....agora vamos em frente e vamos falar de Gateways.
+
+Não esqueca de limpar o lab, que consiste em remover tudo o que fizemos. Nos vemos em breve....
