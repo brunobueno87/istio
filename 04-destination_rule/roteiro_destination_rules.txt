@@ -1,1 +1,92 @@
 Introdução
+
+Destination rules aplica policies ao trafego após ele ser roteado (funciona em conjunto com o virtual service) ele aplica regras uma vez que o trafego chega ap virtual services. Exemplo;
+
+Imaginando um cenário que você tenha 2 workloads (deployments) e você deseja direcionar 50/50 para cada workload. é com o destination rules que você faz isso.
+
+Bom dentro de todas as possibilidades que podemos fazer com o destination rules, vamos nos ater por enquanto a uma simples divisão de tráfego, usando tanto os Virtual Services como o destination rules.
+
+Boa, vamos começar verificando se o name spaces possuem as labels, rode o comando;
+\_kubectl get ns --show-labels
+
+Estando tudo certo, que no caso seria o instio estando injetado no namespace default, vamos em frente e entregar a app Helloworld, para isso rode o comando;
+\_kubectl apply -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/helloworld/helloworld.yaml
+   \_É esperado algo parecido com;
+     \_service/helloworld created
+       deployment.apps/helloworld-v1 created
+       deployment.apps/helloworld-v2 created
+
+Boa, estando tudo certo verifique;
+\_kubectl get pods
+  \_É esperado algo parecido com;
+    \_NAME                             READY   STATUS            RESTARTS   AGE
+      helloworld-v1-69ff8fc747-9rkmd   0/2     PodInitializing   0          14s
+      helloworld-v2-779454bb5f-qdfbh   0/2     PodInitializing   0          14s
+
+Show estando tudo certo, vamos criar um novo namespace;
+\_kubectl create ns test
+  \_OBS; Se você esta seguindo esse repo passo a passo e consequentemente já passou pelo passo 01, o name space já esta criado. =)
+
+Injete o istio no namespace;
+\_istioctl analyze -n test
+  \_kubectl label namespace test istio-injection=enabled
+
+Boa, vamos em frente e entregar um pod de test no namespace de test;
+\_kubectl run test --image=nginx -n test
+  \_Verifique;
+    \_kubectl -n test get pods
+
+Agora rode o comando get svc;
+\_kubectl get svc
+  \_OBS; Verifique a saida do service helloworld
+
+Show estando tudo certo, agora vamos entrar no container de test;
+\_kubectl exec -ti -n test test -- /bin/bash
+  \_Agora rode um curl para a app HelloWorld;
+    \_curl helloworld.default.svc:5000/hello
+      \_OBS; rode esse comando algumas vezes em sequencia e observer que hora vai responder v1 e hora vai responder v2.
+
+Boa... agora vamos rodar um show labels no service e observar as labels dos services helloworld;
+\_kubectl get svc --show-labels
+  \_É esperado algo parecido com;
+     NAME          TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE   LABELS
+     details       ClusterIP   10.97.186.111    <none>        9080/TCP   23d   app=details,service=details
+     helloworld    ClusterIP   10.109.93.186    <none>        5000/TCP   22m   app=helloworld,service=helloworld
+     kubernetes    ClusterIP   10.96.0.1        <none>        443/TCP    42d   component=apiserver,provider=kubernetes
+     productpage   ClusterIP   10.111.74.88     <none>        9080/TCP   23d   app=productpage,service=productpage
+     ratings       ClusterIP   10.106.222.133   <none>        9080/TCP   23d   app=ratings,service=ratings
+     reviews       ClusterIP   10.97.129.218    <none>        9080/TCP   23d   app=reviews,service=reviews
+
+OBS; Veja que o service helloworld contem as labels app=helloworld,service=helloworld
+
+Boa, vamos em frente e agora vamos olhar as labels dos pods;
+\_kubectl get pods --show-labels
+  \_Observe a saida e veja que os pods tem outras labels como por exemplo version=v1 e version=v2
+
+Show é justamente essas labels que vamos utilizar no nosso destination rule. Vamos criar nosso destination rule;
+\_vim ds.yaml
+apiVersion: networking.istio.io/v1beta1 
+kind: DestinationRule
+metadata:
+  name: hello-world-ds
+  namespace: default
+spec:
+  host: helloworld
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+  - name: v2
+    labels:
+      version: v2
+
+Boa, agora aplique isso;
+\_kubectl apply -f ds.yaml
+  \_Verifique;
+    \_kubectl get destinationrules.networking.istio.io
+
+Boa...como já sabemos um destination rule é inutil sem um virtual service, então vamos em frente e vamos criar 1;
+\_vim vs.yaml
+
+
+
