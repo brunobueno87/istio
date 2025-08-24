@@ -1,0 +1,49 @@
+Gateways
+
+Gateways são o ponto de entrada do "mundo externo" para seus services de istio. Eles são opcionais ou seja você não precisa dele para seus services, porém se por algum motivo você tenha que expor seu workload para o mundo externo é atravéz dele que você pode fazer isso.
+
+Nós temos 2 tipos de gateways para o istio. O primeiro que vamos falar sobre é o ingress gateway que é usado principalmente para gerenciar o tráfego de entrada ao seu cluster.
+O segundo que vamos abordar é o egress gateway que pode ser configurado para gerenciar o tráfego de saída, muito utilizado quando você precisa ter um controle bem rigito das suas apps.
+
+No momento em que estou escrevendo isso, um ponto importante a ser resaltado é o tipo de instalação que já vem com o ingress e egress é o tipo demo. Mas obviamente você pode instalar/habilitar o ingress e o egress gateway em qualquer outro profile de instalação usando o istio operator. Isso é um ponto de observação importante porque isso pode estar na prova então, treine no seu lab como, configurar/aplicar isso.
+
+Show, sendo assim vamos iniciar nosso hands-on de Gateway.
+Comece verificando se o ingress e egress esta habilitado no seu cluster;
+\_kubectl get pods -n istio-system
+  \_É esperado algo parecido com;
+    NAME                                    READY   STATUS    RESTARTS       AGE
+    istio-cni-node-c9f29                    1/1     Running   2 (126m ago)   22d
+    istio-cni-node-msq2m                    1/1     Running   2 (126m ago)   22d
+    istio-cni-node-n2mxj                    1/1     Running   2 (126m ago)   22d
+    istio-egressgateway-7f4558fd74-rm9qg    1/1     Running   0              23m
+    istio-ingressgateway-6955759965-6284n   1/1     Running   2 (126m ago)   22d
+    istiod-5d6b459cb9-dscfx                 1/1     Running   2 (126m ago)   22d
+
+Veja que aparece os pods de ingress e egress....um outro ponto importante aqui é o protocolo o ingress gateway pode lidar com protocolos http, https, tcp, gRPC.
+
+Um gateway istio é frequentemente utilizado para realizar a terminação de TLS. Ele pode gerenciar a criptografia e a descriptografia do tráfego de entrada e saída para o service mesh do istio.
+
+Gateways do istio suportm HTTP, HTTPS como vimos, pode fazer roteamento baseado em cabeçalhos, caminhos de url, portas e também suporta conexões TCP, o que é muito util para serviços que não são baseados em HTTP, por exemplo, um banco de dados ou protocolos gRPC, que são comumente usados para comunicação entre microserviços no Istio, já que realmente é mais rápida que REST API.
+
+Incoming Traffic Flow - Ingress Gateway
+
+Tudo começa com o cliente externo chamando o endpoint de ingress gateway
+\_O ingress gateway que é um pod envoy recebe a chamada, trata ela, verificando 
+  a config do gateway, em seguida consulta a qual virtual services essa chamada pertence.
+  \_Chegando no virtual service ele determina para onde o trafego vai que finanlmente chega 
+    em algum workload do k8s.
+    \_O workload lida com a requisição e da uma resposta.
+
+Outgoing Traffic Flow
+\_Envoy proxy intercepta o trafego de saída.
+  \_A partir dai o egress processa a solicitação verificando a rota correspondente.
+    \_O Egress processa a request.
+      \_E envia a resposta para uma chamada externa seja ela qual for.
+        \_espera a resposta e a envia novamente para o service solicitante.
+
+Show, agora vamos para quele nosso Hands-on maravilhoso que na minha opnião é sempre a melhor parte.
+Bom nesse hands-on vamos nos concentrar no ingress, nesse primeiro momento. Como sempre verifique se o cluster esta com istio habilitado no namespace default.
+\_kubectl get ns --show-labels
+
+Para esse lab, vamos usar a app bookinfo, rode o comando;
+\_
