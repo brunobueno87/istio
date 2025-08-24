@@ -46,4 +46,107 @@ Bom nesse hands-on vamos nos concentrar no ingress, nesse primeiro momento. Como
 \_kubectl get ns --show-labels
 
 Para esse lab, vamos usar a app bookinfo, rode o comando;
-\_
+\_kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.11/samples/bookinfo/platform/kube/bookinfo.yaml
+   \_Verifique;
+     \_kubectl get pods
+
+Estando tudo certo para criar nosso virtualservice que sera linkado ao gateway;
+\_vim vs.yaml
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: book-info-vs
+  namespace: istio-system
+spec:
+  hosts:
+  - productpage
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: productpage.default.svc.cluster.local
+        port:
+          number: 9080
+
+Aplique;
+\_kubectl apply -f vs.yaml
+  \_Verifique;
+    \_kubectl get vs -n istio-system
+
+Boa agora vamos verificar as labels do pod que corresponde ao ingress-gateway;
+\_kubectl describe pod -n istio-system pod-istio-ingress
+  \_Nesse caso aqui é istio=ingressgateway mas observe no seu lab isso pode estar diferente dependendo da forma como você instalou o istio.
+
+Boa agora que já sabemos qual é a label do pod ingress-gateway, vamos em frente e vamos criar nosso gateway;
+\_vim gw.yaml
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: istio-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers: 
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "book.info.com"
+
+Aplique;
+\_kubectl apply -f gw.yaml
+  Verifique;
+  \_kubectl get gateways.networking.istio.io
+
+Boa, no nosso lab vamos usar um nodeport apenas para fins didaticos. Verifique o seu namespace istio-system;
+\_kubectl get svc -n istio-system
+  \_E esperado algo parecido com;
+    \_NAME                   TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                                      AGE
+      istio-egressgateway    ClusterIP      10.97.173.72     <none>        80/TCP,443/TCP                               7h50m
+      istio-ingressgateway   LoadBalancer   10.101.96.39     <pending>     15021:31786/TCP,80:31445/TCP,443:30445/TCP   40d
+      istiod                 ClusterIP      10.107.110.234   <none>        15010/TCP,15012/TCP,443/TCP,15014/TCP        40d
+      \_Pegue o ip do service do istio-ingressgateway. E rode o comando no seu node master;
+        \_curl --head --header "Host: book.info.com" http://10.101.96.39
+	  \_E aqui vc ganha um maravilhoso 404, e isso é esperado ta tudo bem, nós precisamos vincular nosso virtualservice com o nosso gateway. Bora lá então e ajustar nosso vs.yaml;
+	  \_vim vs.yaml
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: book-info-vs
+  namespace: istio-system
+spec:
+  hosts:
+  - "book.info.com"  
+  - productpage
+  gateways:
+    - istio-gateway  
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: productpage.default.svc.cluster.local
+        port:
+          number: 9080
+
+Agora aplique essas modificações;
+\_kubectl apply -f vs.yaml
+  \_Verifique;
+    \_kubectl get vs -n istio-system
+
+Agora rode novamente o curl partindo do node-master;
+\_curl --head --header "Host: book.info.com" http://10.101.96.39
+HTTP/1.1 200 OK
+content-type: text/html; charset=utf-8
+content-length: 1683
+server: istio-envoy
+date: Sun, 24 Aug 2025 02:17:44 GMT
+x-envoy-upstream-service-time: 11
+  \_Boua agora sim você tem um 200. E é isso sobre gateways, evidentemente arquivo de gw o ideial é que você utilize um lb de algum cloud provider no hosts mas apenas de forma a ser didatica é assim que configura um mesmo utilizando o ip.
+
+Show agora vamos em frente e vamos falar de Service Entries.
