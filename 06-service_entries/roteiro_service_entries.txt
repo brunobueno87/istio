@@ -1,0 +1,94 @@
+Service Entry
+
+Nada mais é que uma forma de controlar o tráfego que sai do seu cluster, no service entries você cadastra entradas de registro para objetos fora do seu cluster, como por exemplo banco de dados, VM's, ou qualquer outra coisa, API's e por ai vai...
+
+E porque isso ? - Mais uma vez o objetivo aqui é controlar e monitorar, contolando o tráfego até para serviços externos conseguimos monitorar.
+
+Um outro benefício de utilizar isso é a Centralização de gestão. Com esse controle conseguimos aplicar policies e configurar retries, timouts, mTLS. Temos também service Discovery para serviços externos. Isso é legal porque com isso nós utilizamos os proxys do Istio para acessar serviços externos, nossos serviços não precisam ficar saindo para a Internet, isso permite um controle mais granular.
+
+Remumo do Fluxo;
+
+1.Manage External services and egress traffic centrally.
+ \_2.Apply trafic policies like retries, timeouts and mTLS.
+   \_3.Enable service discovery for routing to external services.
+     \_4.Enforce fine-grained access control and security.
+
+E agora se já sabe.... Vambora de Hands-on =)
+
+Boa, como sempre seguimos principio que o cluster esta "limpo".
+Então vamos fazer um dump e instalar o istio com a modificação que necessária 
+\_istioctl profile dump demo -o yaml > demo.yaml
+  \_Edite o arquivo;
+    \_vim demo.yaml
+
+Procure por uma parte escrita Meshconfig, não se assuste com as configs que ja vem por default, pois por default é omitida a config que queremos adicionar. Então embaixo da config Meshconfig adicione as seguintes linhas;
+...
+meshConfig:
+  outboundTrafficPolicy:
+    mode: REGISTRY_ONLY
+...
+
+Valide;
+\_istioctl validate -f demo.yaml
+   \_Estando tudo ok instale;
+     \_istioctl install -f demo.yaml 
+This will install the Istio 1.18.2 demo profile with ["Istio core" "Istiod" "Ingress gateways" "Egress gateways"] components into the cluster. Proceed? (y/N) y
+✔ Istio core installed
+✔ Istiod installed
+✔ Egress gateways installed
+✔ Ingress gateways installed
+✔ Installation complete
+Making this installation the default for injection and validation.
+
+Injete a label no namespace;
+\_kubectl label namespace test istio-injection=enabled
+  \_Rode um container de test;
+    \_kubectl run test --image=nginx
+      \_Verifique;
+        \_kubectl get pod
+	  \_Esperado 2/2
+            \_Entre no pod de test;
+	       \_kubectl exec -ti test -- /bin/bash
+                 \_curl --head -L http://www.wikipedia.org
+		   \_É esperado um 502
+
+Isso porque configuramos que o trafego de saída do Istio, tem que ser do tipo registry, e como ainda não configuramos nenhum registro tomamos um mavarilhoso 502 bem na cara =)
+
+Vamos em frente e vamos criar nosso primeiro service_entry;
+\_vim service_entry.yaml
+aipVersion networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: wikipedia.org
+spec:
+  hosts:
+    - www.wikipedia.org
+  ports:
+    - number: 80
+      name: http
+      protocol: HTTP
+    - number: 443
+      name: https
+      protocol: HTTPS
+  resolution: DNS
+
+Aplique;
+\_kubectl apply -f service_entry.yaml
+  \_Verifique;
+    \_kubectl get serviceentries.networking.istio.io
+
+Entre novamente no pod de test e rode novamente o curl;
+\_kubectl exec -ti test -- /bin/bash
+  \_curl --head -L http://www.wikipedia.org
+    \_É esperado um 200
+
+Ponto de observação, que pode ser que caia uma pergunta assim na prova;
+Como incorporar um egress com um service entries ?
+Para isso acontecer vamos precisar de 3 componentes do istio;
+\_egress gateway
+\_virtual services
+\_destination rules
+
+
+
+
