@@ -90,5 +90,98 @@ Para isso acontecer vamos precisar de 3 componentes do istio;
 \_destination rules
 
 
+Vamos começa pelo egress gateway. Comece verificando as labels do pod de egress. Rode o comando;
+\_kubectl get pods -n istio-system --show-labels
+   \_Buscamos algo parecido com (istio=egressgateway)
+      \_Verificado, vamos em frente e criar nosso egress-gateway;
+         \_vim egress_gateway.yaml
 
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: istio-egressgateway
+spec:
+  selector:
+    istio: egressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - www.wikipedia.org
 
+Aplique;
+\_kubectl apply -f egress_gateway.yaml
+  \_Verifique;
+     \_kubectl get gateways.networking.istio.io
+
+Show agora vamos em frente e vamos criar nosso destination_rules;
+\_vim destination_rule.yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: egressgateway-for-wikipedia
+  namespace: default
+spec:
+  host: istio-egressgateway.istio-system.svc.cluster.local
+  subsets:
+  - name: wikipedia
+
+Aplique;
+\_kubectl apply -f destination_rule.yaml
+  \_Verifique;
+    \_kubectl get destinationrules.networking.istio.io
+
+Boa, agora vamos para o Virtualservices;
+\_vim virtual_service.yaml
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: wikipedia-egress-gateway
+spec:
+  hosts:
+  - www.wikipedia.org
+  gateways:
+  - istio-egressgateway
+  - mesh
+  http:
+  - match:
+    - gateways:
+      - mesh
+      port: 80
+    route:
+    - destination:
+        host: istio-egressgateway.istio-system.svc.cluster.local
+        subset: wikipedia
+        port:
+          number: 80
+      weight: 100
+  - match:
+    - gateways:
+      - istio-egressgateway
+      port: 80
+    route:
+    - destination:
+        host: www.wikipedia.org
+        port:
+          number: 80
+      weight: 100
+
+Aplique;
+\_kubectl apply -f virtual_service.yaml
+  \_Verifique; 
+     \_kubectl get vs
+
+Deixe rolando em um terminal os logs do istio-egressgateway;
+\_kubectl logs -f -n istio-system istio-egressgateway-iddopod
+  \_Abra outro terminal entre no pod de test;
+    \_kubectl exec -ti test /bin/bash
+      \_Faça uma chamada para o wikipedia com o curl, você vai receber um 200, isso porque você está saindo sem passar pelo service_entries
+        \_curl --head -L http://www.wikipedia.org
+	  \_Observe no outro terminal os logs da chamada =)
+
+OBS; Pensar se vale a pena adicionar um exemplo de comentar a entrada de mesh no arquivo do istio e mostrar que apoós aplicar isso o mesmo processo não mostra chamadas
+
+Isso tudo sobre services entries, espero que você esteja acompanhando e entendo tudo.
+Vamos em frente e agora vamos falar sobre Mirrorin, limpe o lab e passe o proximo passo.
