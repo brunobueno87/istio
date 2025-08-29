@@ -1,0 +1,9 @@
+Mirroring
+
+Antes de falarmos sobre mirroring, vamos dar uma relembrada em releases. Canary Releases é o processo de introduzir uma nova versão de sua aplicação e redirecionar 1 pequeno pedaço de usuarios, para essa nova versão e vai fazendo o rollout de forma progressiva.
+Temos também o Blue/Green release quenada mais é que fazer a mudança de forma mais abrupta, chaveando 100% do trafego para a versão nova.
+Bom temos 2 versões aqui de release bem interessantes, porém ou  utilizamos 1 abordagem ou utilizamos outra. E então vamos dar uma olhada mais de perto no mirroring. O istio oferece essa versão de deploy, com esse tipo de release o istio envia uma cópia do tráfego ao vivo para ambos os ambientes de produção e de teste.
+Para utilizar esse tipo de release vamos precisar de uma combinação de virtual-service e uma destination rule para espelhar o tráfego.
+Bom sendo assim vamos em frente e bora de Hands-on para animar =D
+
+
