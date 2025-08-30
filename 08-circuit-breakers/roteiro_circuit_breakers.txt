@@ -1,0 +1,18 @@
+Circuit Breakers
+
+Um circuit breaker eistio é similar a um circuit breaker de uma rede elétrica, mas ao invez de cortar a energia ele vai controlar tráfego de rede entre os serviços.
+
+O circuit breaking ajuda a proteger os outros serviços de serrem afetados ou sobrecarregados por ele.
+Exemplo, imagine que a app-a, chame a app-b que por sua vez chama um Banco de dados.
+
+app-a ==> app-b ==> DB
+
+Porém o Banco de daods  começou a ficar lento, e mesmo assim os usuários continuam chamando a app-a, que por sua vez chama a app-b que continua a metralhar o banco, logo o banco vai parar de responder, o que vai derrubar  o sistema como um todo. Para evitar isso adicionamos um circuit breaker, para que quando o Banco de dados comece a ficar lento na suas respostas, a app-b não força mais chamadas ela da algum retorno para app-a, algo como algum (500, alguma coisa assim)
+O circuit breaker é configurado no Destination rule.
+
+Show agora como sempre, chega de história triste e vamos para o Hands-on...
+
+Como sempre comece verificando o lab;
+\_kubectl get ns --show-labels
+
+
