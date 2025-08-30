@@ -6,4 +6,141 @@ Bom temos 2 versões aqui de release bem interessantes, porém ou  utilizamos 1 
 Para utilizar esse tipo de release vamos precisar de uma combinação de virtual-service e uma destination rule para espelhar o tráfego.
 Bom sendo assim vamos em frente e bora de Hands-on para animar =D
 
+Vamos começar verificando o cluster;
+\_kubectl get ns --show-labels
+  \_Estando tudo certo vamos começar criando 1 aplicação
+    \_vim echo_deployment.yaml
 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo-server-v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: echo-server
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: echo-server
+        version: v1
+    spec:
+      containers:
+      - name: echo
+        image: ealen/echo-server
+        ports:
+        - containerPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo-server-v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: echo-server
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: echo-server
+        version: v2
+    spec:
+      containers:
+      - name: echo
+        image: ealen/echo-server
+        ports:
+        - containerPort: 80
+
+Aplique;
+\_kubectl apply -f echo_deployment.yaml
+  \_Verifique;
+    \_kubectl get pods
+       \_Estando 2/2 vamos em frente e vamos criar nosso services
+          \_vim echo_svc.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo-server
+  labels:
+    app: echo-server
+spec:
+  ports:
+  - port: 80
+    name: http
+  selector:
+    app: echo-server
+
+Aplique;
+\_kubectl apply -f svc.yaml
+  \_Verifique;
+    \_kubectl get svc
+
+
+Show, estando tudo certo, vamos em frente e vamos criar nosso destination_rule;
+\_vim dr.yaml
+
+apiVersion: networking.istio.io/v1alpha3
+metadata:
+  name: echo-server
+spec:
+  host: echo-server
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+  - name: v2
+    labels:
+      version: v2
+
+Aplique;
+\_kubectl apply -f dr.yaml
+   \_Verifique;
+      \_kubectl get destinationrules.networking.istio.io
+
+Estando tudo certo, vamos em frente e vamos criar nosso VirtualService
+\_vim vs.yaml
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: echo-server
+spec:
+  hosts:
+  - echo-server
+  http:
+    - route:
+      - destination:
+          host: echo-server
+          subset: v1
+        weight: 100
+      mirror:
+        host: echo-server
+        subset: v2
+      mirrorPercentage:
+        value: 100.0
+
+Aplique;
+\_kubectl apply -f vs.yaml
+  \_Verifique;
+     \_kubectl get virtualservices.networking.istio.io
+
+Boa agora vamos subir um pod de test e fazer chamadas a app echo;
+\_kubectl run test --image=nginx
+  \_Verifique;
+    \_kubectl get pod
+      \_Aguarde 2/2 no pod test
+        \_entre nesse pod de test
+	  \_kubectl exec -ti test /bin/bash
+	    \_curl -s http://echo-server | grep -o '"HOSTNAME":"[^"]*"' | sed 's/"HOSTNAME":"\(.*\)"/HOSTNAME: \1/'
+	    \_Se quiser pode usar a chamada simples tbm porem ela é muito verborragica => curl -s http://echo-server
+
+Abra mais dois terminais e verifique os logs dos pods  echo-v1 e echo-v2, faça varias chamadas de curl do pod de test e veja que apnas o v1 retorna resposta, porem o v2 recebe as mesmas requests;
+\_kubectl logs echo-server-v1-6fdd96d4c9-scp5f -f
+\_kubectl logs echo-server-v2-56494b9bd4-226px -f
+
+Show heim.....e é assim que você configura o seu mirroring, vamos em frente e vamos ver agora o Circuit Breakers
