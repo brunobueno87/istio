@@ -1,0 +1,36 @@
+Fault Injection
+
+Como o próprio nome já diz, nada mais é que injetar falhas nos serviços do Istio para ver como as apps se comportam. Muito util para testar problemas antes que eles venham de fato acontecer.
+
+Beneficios de se usar fault injection;
+\_Testing how the app handles failure
+\_Testing fallback logic
+\_Checking timeouts and retries
+\_Detecting weak spots
+\_Practicing Chaos Engennering
+
+Um ponto de observação é que o fault inject é configurado no VirtualService não tem seu próprio objeto como o vs ou o dr.
+
+Então, vambora de Hands-on que é a parte divertida da história =D
+
+Vamos começar verificando o lab;
+\_kubectl get ns --show-labels
+
+Entregue uma aplicação de HelloWorld no cluster;
+\_kubectl apply -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/helloworld/helloworld.yaml
+  \_Verifique;
+     \_kubectl get pods
+       \_Aguarde o 2/2
+
+Agora crie um pod de teste;
+\_kubectl run test --image=nginx
+  \_Aguarde o 2/2
+
+Pegue o nome dos atuais services;
+\_kubectl get svc
+
+Agora rode um curl de teste apontando para a app HelloWorld;
+\_kubectl exec -ti test -- curl http://helloworld:5000/hello
+  \_É esperado um 200 aqui, porem preste a atenção e veja que em varias chamadas consecutivas alterna entre v1 e v2
+
+
