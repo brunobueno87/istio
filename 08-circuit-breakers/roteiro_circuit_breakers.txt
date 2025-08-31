@@ -15,4 +15,137 @@ Show agora como sempre, chega de história triste e vamos para o Hands-on...
 Como sempre comece verificando o lab;
 \_kubectl get ns --show-labels
 
+Vamos criar nossa app de teste;
+\_vim echo_deployment.yaml
 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: echo-server
+  template:
+    metadata:
+      labels:
+        app: echo-server
+    spec:
+      containers:
+      - name: echo
+        image: ealen/echo-server
+        ports:
+        - containerPort: 80
+
+Aplique;
+\_kubectl apply -f echo_deployment.yaml
+   \_Verifique;
+     \_kubectl get pods
+       \_Aguarde o 2/2
+
+
+Boa, estando tudo certo vamos em frente e vamos criar o service da nossa app;
+\_vim svc.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo-server
+  labels:
+    app: echo-server
+spec:
+  ports:
+  - port: 80
+    name: http
+  selector:
+    app: echo-server
+
+Aplique;
+\_kubectl apply -f svc.yaml
+  \_Verifique;
+     \_kubectl get svc
+
+Agora vamos implementar uma app de teste. É uma app no estilo laod tester. Rode o comando;
+\_kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.25/samples/httpbin/sample-client/fortio-deploy.yaml
+  \_Verifique;
+     \_kubectl get pods
+       \_Aguarde o 2/2 do fortio
+
+Boa agora vamos rodar um curl de dentro do pod fortio;
+\_kubectl exec fortio-deploy-5c95d6545c-m867k -c fortio -- /usr/bin/fortio curl -quiet http://echo-server | grep -o "HOSTNAME"
+  \_É esperado um 200 aqui
+
+Show, vamos em frente vamos criar um virtual service;
+\_vim vs.yaml
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: echo-vs
+spec:
+  hosts:
+    - echo-server
+  http:
+  - route:
+    - destination:
+        host: echo-server
+        port:
+          number: 80
+
+Aplique;
+\_kubectl apply -f vs.yaml
+  \_Verifique;
+    \_kubectl get virtualservices.networking.istio.io
+
+Showe, estando tudo certo vamos em frente e vamos agora criar um destination rule;
+\_vim dr.yaml
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: echo-dr
+spec:
+  host: echo-server
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 1
+      http:
+        http1MaxPendingRequests: 1
+        maxRequestsPerConnection: 1
+    outlierDetection:
+      consecutive5xxErrors: 1
+      interval: 5s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 100
+
+Aplique;
+\_kubectl apply -f dr.yaml
+  \_Aplique;
+    \_kubectl get destinationrules.networking.istio.io
+
+Boua, agora vamos fazer o seguinte, vamos voltar para o pod fortio e vamos rodar o seguinte comando;
+\_kubectl exec fortio-deploy-5c95d6545c-m867k -c fortio -- /usr/bin/fortio load -c 2 -qps 0 -n 20 -loglevel Warning http://echo-server
+  \_Na saida você vai conseguir ver quanto de porcentagem teve de chamadas 200 e quanto teve de chamadas 503
+    \_Veja abaixo um exemplo de saida do comando;
+
+...
+# Socket and IP used for each connection:
+[0]   5 socket used, resolved to 10.99.52.105:80, connection timing : count 5 avg 0.0007569962 +/- 0.0005178 min 0.000152964 max 0.00162916 sum 0.003784981
+[1]   4 socket used, resolved to 10.99.52.105:80, connection timing : count 4 avg 0.00030870625 +/- 0.000231 min 8.6509e-05 max 0.00069346 sum 0.001234825
+Connection time (s) : count 9 avg 0.00055775622 +/- 0.0004715 min 8.6509e-05 max 0.00162916 sum 0.005019806
+Sockets used: 9 (for perfect keepalive, would be 2)
+Uniform: false, Jitter: false, Catchup allowed: true
+IP addresses distribution:
+10.99.52.105:80: 9
+Code 200 : 11 (55.0 %)
+Code 503 : 9 (45.0 %)
+Response Header Sizes : count 20 avg 119.55 +/- 108.1 min 0 max 218 sum 2391
+Response Body/Total Sizes : count 20 avg 1771.85 +/- 1438 min 153 max 3073 sum 35437
+All done 20 calls (plus 0 warmup) 9.009 ms avg, 184.9 qps
+
+
+Show isso é tudo para o nosso lab de exemplo de circuit breaker, evidente que isso é apenas um exemplo no mundo real o ideal seria ao receber 500 dar uma resposta amigavel para o seu cliente como por exemplo, "produto não encontrado" ou "produto indisponivel no momento, podendo até adicionar um tracking solicitando que o usuário insira algum email para notificação quando o produto estiver disponível" para fins didaticos ver essas respostas 200 e 500 valida o funcionamento do circuit breaker, porém esteja atento para lidar com os erro da familia "500" no mundo real.
+
+Show, limpe o lab e bora para o proximo tópico que é, Fault Injection. =D Nos vemos lá, forte abraço.
