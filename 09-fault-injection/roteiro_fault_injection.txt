@@ -33,4 +33,212 @@ Agora rode um curl de teste apontando para a app HelloWorld;
 \_kubectl exec -ti test -- curl http://helloworld:5000/hello
   \_É esperado um 200 aqui, porem preste a atenção e veja que em varias chamadas consecutivas alterna entre v1 e v2
 
+show, vamos em frente e vamos criar um virtual services;
+\_vim vs.yaml
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: hello-world-vs
+spec:
+  hosts:
+    - helloworld
+  http:
+    - fault:
+        delay:
+          percentage:
+            value: 100.0
+          fixedDelay: 5s
+      route:
+        - destination:
+            host: helloworld
+            port:
+              number: 5000
+
+Aplique;
+\_kubectl apply -f vs.yaml
+  \_Verifique;
+    \_kubectl get virtualservices.networking.istio.io
+
+Boua, agora vamos rodar novamente o curl do pod de test e veja que agora as chamadas demoram 5segundos cada;
+\_kubectl exec -ti test -- curl http://helloworld:5000/hello
+   \_Faça varias chamadas......Estando tudo certo, vamos em frente
+
+
+Show, agora vamos mudar a config para abort, modifique o seu virtual service, para que ele fique da seguinte forma;
+\_vim vs.yaml
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: hello-world-vs
+spec:
+  hosts:
+    - helloworld
+  http:
+    - fault:
+        abort:
+          percentage:
+            value: 100.0
+          httpStatus: 500  
+      route:
+        - destination:
+            host: helloworld
+            port:
+              number: 5000
+
+Aplique;
+\_kubectl apply -f vs.yaml
+   \_Agora rode novamente o curl e veja que vai ser um retorno 500
+     \_kubectl exec -ti test -- curl --head http://helloworld:5000/hello
+       \_É eaperado algo parecido com;
+
+HTTP/1.1 500 Internal Server Error
+content-length: 18
+content-type: text/plain
+date: Tue, 02 Sep 2025 02:16:11 GMT
+server: envoy
+
+Altere o erro para 404, aplique e faça uma nova chamada curl.
+\_vim vs.yaml
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: hello-world-vs
+spec:
+  hosts:
+    - helloworld
+  http:
+    - fault:
+        abort:
+          percentage:
+            value: 100.0
+          httpStatus: 404
+      route:
+        - destination:
+            host: helloworld
+            port:
+              number: 5000
+
+Aplique;
+\_kubectl apply -f vs.yaml
+  \_Rode um novo curl;
+    \_kubectl exec -ti test -- curl --head http://helloworld:5000/hello
+      \_É esperado algo parecido com;
+
+TTP/1.1 404 Not Found
+content-length: 18
+content-type: text/plain
+date: Tue, 02 Sep 2025 02:19:24 GMT
+server: envoy
+
+Agora mude a linha value do vs.yaml para 50.0 e faça nova chamadas curl e veja o resultado;
+\_vim  vs.yaml
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: hello-world-vs
+spec:
+  hosts:
+    - helloworld
+  http:
+    - fault:
+        abort:
+          percentage:
+            value: 50.0
+          httpStatus: 404
+      route:
+        - destination:
+            host: helloworld
+            port:
+              number: 5000
+
+Aplique;
+\_kubectl apply -f vs.yaml
+  \_Agora rode chamadas curl;
+    \_kubectl exec -ti test -- /bin/sh -c 'for i in $(seq 1 10); do curl --head helloworld.default.svc:5000/hello ; echo "---" ; done'
+      \_é esperado algo parecido com;
+
+HTTP/1.1 404 Not Found
+content-length: 18
+content-type: text/plain
+date: Tue, 02 Sep 2025 02:23:54 GMT
+server: envoy
+
+---
+HTTP/1.1 404 Not Found
+content-length: 18
+content-type: text/plain
+date: Tue, 02 Sep 2025 02:23:54 GMT
+server: envoy
+
+---
+HTTP/1.1 404 Not Found
+content-length: 18
+content-type: text/plain
+date: Tue, 02 Sep 2025 02:23:54 GMT
+server: envoy
+
+---
+HTTP/1.1 200 OK
+server: envoy
+date: Tue, 02 Sep 2025 02:23:54 GMT
+content-type: text/html; charset=utf-8
+content-length: 60
+x-envoy-upstream-service-time: 63
+
+---
+HTTP/1.1 200 OK
+server: envoy
+date: Tue, 02 Sep 2025 02:23:54 GMT
+content-type: text/html; charset=utf-8
+content-length: 60
+x-envoy-upstream-service-time: 60
+
+---
+HTTP/1.1 200 OK
+server: envoy
+date: Tue, 02 Sep 2025 02:23:54 GMT
+content-type: text/html; charset=utf-8
+content-length: 60
+x-envoy-upstream-service-time: 59
+
+---
+HTTP/1.1 200 OK
+server: envoy
+date: Tue, 02 Sep 2025 02:23:54 GMT
+content-type: text/html; charset=utf-8
+content-length: 60
+x-envoy-upstream-service-time: 52
+
+---
+HTTP/1.1 200 OK
+server: envoy
+date: Tue, 02 Sep 2025 02:23:54 GMT
+content-type: text/html; charset=utf-8
+content-length: 60
+x-envoy-upstream-service-time: 59
+
+---
+HTTP/1.1 200 OK
+server: envoy
+date: Tue, 02 Sep 2025 02:23:54 GMT
+content-type: text/html; charset=utf-8
+content-length: 60
+x-envoy-upstream-service-time: 63
+
+---
+HTTP/1.1 404 Not Found
+content-length: 18
+content-type: text/plain
+date: Tue, 02 Sep 2025 02:23:54 GMT
+server: envoy
+
+---
+
+Show e isso é tudo para o nosso lab de fault-injection. Limpe o lab e bora para o proximo tópico que será o Reques Timeouts & Retries
+
+
 
