@@ -1,3 +1,89 @@
 request_timeout_retries
 
+Boa agora vamos fazer um lab de request timeout e retries.
+Comece verificando o lab;
+\_kubectl get ns --show-labels
+  \_Estando tudo certo vamos em frente e vamos implementar a app httpbin
+    \_kubectl apply -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/httpbin/httpbin.yaml
+      \_Verifique;
+         \_kubectl get pods
+            \_Estando tudo bem siga em frente para o pod de test;
+	       \_kubectl run test --image=nginx
+	         \_Verifique;
+		   \_kubectl get pods
+
+Vamos pegar o service da app httpbin;
+\_kubectl get svc
+  \_Show agora rode um curl de dentro da app de test para o httpbin;
+     \_kubectl exec -ti test -- curl --head http://httpbin:8000/get
+       \_É esperado um 200
+
+Vamos em frente e agora vamos criar um virtual service;
+\_vim vs.yaml
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: httpbin-vs
+spec:
+  hosts:
+    - httpbin
+  http:
+    - timeout: 2s
+      route:
+        - destination:
+            host: httpbin
+            port:
+              number: 8000
+
+Aplique;
+\_kubectl appy-f vs.yaml
+   \_Verifique;
+      \_kubectl get vs
+
+Agora vamos rodar algumas chamadas de curl para teste;
+\_kubectl exec -ti test -- curl http://httpbin:8000/delay/1
+  \_Faça algumas chamadas assim e veja que vai responder normalmente......depois rodo o comando abaixo;
+    \_kubectl exec -ti test -- curl http://httpbin:8000/delay/2
+      \_Agora é espera a saida => upstream request timeout
+        \_Show né ? Boua, agora vamos em frente e vamos teste config de retrie.
+
+Vamos começar removendo o atual vs;
+\_kubectl delete vs httpbin-vs
+  \_Agora edite o arquivo vs.yaml para que ele fique assim;
+    \_vim vs.yaml
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: httpbin-vs
+spec:
+  hosts:
+    - httpbin
+  http:
+    - route:
+        - destination:
+            host: httpbin
+            port:
+              number: 8000
+      retries:
+        attempts: 3
+        perTryTimeout: 1s
+        retryOn: 5xx
+
+Aplique;
+\_kubectl apply -f vs.yaml
+  \_Verifique;
+     \_kubectl get vs
+
+Agora abra um novo terminal e verifique os logs do httpbin;
+\_kubectl logs httpbin-7f56dc944b-dbgkw -c istio-proxy -f
+  \_No outro teminal vamos fazer algumas chamadas curl;
+    \_kubectl exec -ti test -- curl --head http://httpbin:8000/status/500
+    \_kubectl exec -ti test -- curl --head http://httpbin:8000/get
+
+Observer o comportamento do log nas duas chamadas e veja o retrie acontecendo.
+
+Show agora vamos, para um novo tópico - Securing Workloads, nos vemos lá mermão, forte abraço !!! 
+
 
