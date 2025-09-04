@@ -1,0 +1,36 @@
+Securing Workloads
+
+O que veremos ?
+\_1. Introducing the concept of Zero-trust Architecture.
+\_2. Exploring Istio's Authentication resource and its configurations.
+\_3. Explaining how encrypted traffic is habdled in Istio.
+\_4. Discussing the role of authentication after authentication.
+\_5. Explaining how Istio's Authorization resource controls access using fine-grained policies.
+\_6. Analyzing the complexity involved in managing authorization rules.
+\_7. Emphasizing the importance of security for the exam preparation.
+\_8. Beginning with a focus on understanting authorization fundamentals.
+
+Agora vamos falar de um cnceito "Zero Trust".
+É meio que auto explicativo, que basicamente significa nunca confie, sempre verifique. Por exemplo;
+\_Você confia nesse ip ?
+\_Você confia nessa app ?
+\_Você confia nessa identidade ?
+\_E por ai vai.....
+
+O istio faz isso implementando Mtls para toda comunicação um ponto importante para se observar é que o istio não impõe o Zero Trust por padrão você precisa configurar isso.
+E você faz isso configurando o Peer Authentication, que podem ser restritivos ou permissivos.
+
+E por que usar Peer Authentication ?
+\_Zero-Trust principles
+\_Encrypts traffic between services
+\_Prevents unauthorized access
+\_Protects services
+\_Services identity verification
+
+Boa, agora vc já sabe né ? É hora de Hands-on maravilho......
+
+Como sempre comece verificando as labels;
+\_kubectl get ns --show-labels
+
+Entregue a app HelloWorld;
+\_kubectl apply -f https://rwa.githubusercontent.com/istio/istio/refs/heads/master/samples/helloworld/helloworld.yaml
