@@ -1,0 +1,30 @@
+Authorization
+
+simplesmente define que pode ser feito em termos de request no workload do istio, por exemplo, qual workload pode ou não fazer um POST, ou um GET, quando necessário controlar isso entre os namespaces.
+
+Bom vamos de Hands-on que é pra alegrar o dia;
+
+Verifique o lab;
+\_kubectl get ns --show-labels
+   \_Confirme de o namespace default possui o istio injetado
+
+Show, estando tudo certo entregue a app httpbin no namespace default;
+\_kubectl apply -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/httpbin/httpbin.yaml
+  \_Verifique;
+    \_kubectl get pods
+
+Caso não exita crie um namespace com o nome test e entregue uma app de test nesse namespace.
+
+Rode um curl do pod de test apontando para o httpbin;
+\_kubectl exec -ti -n test test -- curl --head http://httpbin.default.svc:8000
+HTTP/1.1 200 OK
+access-control-allow-credentials: true
+access-control-allow-origin: *
+content-security-policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' camo.githubusercontent.com
+content-type: text/html; charset=utf-8
+date: Thu, 04 Sep 2025 23:17:44 GMT
+x-envoy-upstream-service-time: 13
+server: envoy
+transfer-encoding: chunked
+
+
