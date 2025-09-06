@@ -1,0 +1,11 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all-product
+spec:
+  selector:
+    matchLabels:
+      app: productpage
+  action: DENY
+  rules:
+    - {}

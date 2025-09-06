@@ -197,7 +197,64 @@ Aplique;
     \_kubectl exec -ti test -n app -- curl http://httpbin.default.svc:8000/get
     \_kubectl exec -ti test -n test -- curl http://httpbin.default.svc:8000/get
 
+Show agora rode a app bookinfo;
+\_kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.11/samples/bookinfo/platform/kube/bookinfo.yaml
+  \_Verifique;
+    \_kubectl get pod
+      \_Aguaede todos os pods ficarem 2/2
+
+Um ponto de observação é, sempre tome cuidado com politicas de DENY e ALLOW no istio porque por padrão as policys de DENY sempre vencem. Isso posto, vamos fazer uma policy que negue tudo;
+\_vim auth_deny_all.yaml
+
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all
+  namespace: default
+spec:
+  action: DENY
+  rules:
+  - {}
 
 
+Aplique;
+\_kubectl apply -f auth_deny_all.yaml
+  \_Agora rode um curl partindo do namespace app;
+    \_kubectl exec -ti test -n app -- curl --head http://httpbin.default.svc:8000/get
+      \_Você vai receber um 403
+         \_Agora delete a policy DenyAll;
+	    \_kubectl delete -f auth_deny_all.yaml
+	       \_Agora rode novamente o curl;
+	         \_kubectl exec -ti test -n app -- curl --head http://httpbin.default.svc:8000/get
+		   \_É esperado um 200
+
+Boa, isso é apenas para mostrar como que um deny-all vai bloquear tudo.
+Vamos em frente e como entregamos a app bookinfo, vamos fazer algumas chamadas curl para ela, para ver seu retorno;
+\_kubectl exec -ti test -n app -- curl --head http://productpage.default.svc:9080/productpage
+  \_É esperado um 200 aqui, vamos agora criar uma regra que bloqueie apenas a app bookinfo;
+    \_vim auth_deny_product.yaml
+
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all-product
+spec:
+  selector:
+    matchLabels:
+      app: productpage
+  action: DENY
+  rules:
+    - {}
+
+Aplique;
+\_kubectl apply -f auth_deny_product.yaml
+   \_Rode uma nova chamada curl para a app bookinfo e isso deve retornar um 403;
+     \_kubectl exec -ti test -n app -- curl --head http://productpage.default.svc:9080/productpage
+       \_Caso vc esteja se perguntando se uma chamada para a app httpbin funcionaria, rode uma chamada curl apontando pra ela e veja;
+         \_kubectl exec -ti test -n app -- curl --head http://httpbin.default.svc:8000/get
+	   \_Show né ? =D
+
+Boua, e isso é tudo por enquanto para o nosso lab de Authorization, vamos em frente e agora vamos falar de outro tema importante, que é Workload Entry.
+Então "limpe" o lab e sigua em frente.
 
 
