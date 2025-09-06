@@ -27,4 +27,75 @@ x-envoy-upstream-service-time: 13
 server: envoy
 transfer-encoding: chunked
 
+Boa, tudo certo vamos em frente e vamos comaçar ativando o mTLS;
+\_vim peer_auth_global.yaml
+
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: istio-system
+spec:
+  mtls:
+    mode: STRICT
+
+Aplique;
+\_kubectl apply -f peer_auth_global.yaml
+  \_Verifique;
+    \_kubectl get peerauthentications.security.istio.io -n istio-system
+
+Agora vamos em frente e vamos criar um policy;
+\_vim auth_policy.yaml
+
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: httpbin-auth-policy
+spec:
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: ["test"]
+      to:
+        - operation:
+            methods: ["GET"]
+
+Aplique;
+\_kubectl apply -f auth_policy.yaml
+  \_Verifique;
+     \_kubectl get authorizationpolicies.security.istio.io
+
+Boa, agora rode uma nova chamada curl;
+\_kubectl exec -ti -n test test -- curl --head http://httpbin.default.svc:8000
+   \_Agora é esperado um 403 e isso é o esperado pois nossa chamada é do tipo HEAD, vamos repetir a chamada sem o head
+     \_kubectl exec -ti -n test test -- curl http://httpbin.default.svc:8000
+       \_Agora é esperado um 200, caso você queira ver o head funcionando você precisa adicionar isso auth_policy
+         \_vim auth_policy.yaml
+
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: httpbin-auth-policy
+spec:
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: ["test"]
+      to:
+        - operation:
+            methods: ["GET", "HEAD"]
+
+	    Aplique;
+	    \_kubectl apply -f auth_policy.yaml
+	      \_Refaça a chamada curl com o head;
+	        \_ kubectl exec -ti -n test test -- curl --head http://httpbin.default.svc:8000
+		  \_Veja que agora retorna um 200
+
+
+
+
+
+
 
