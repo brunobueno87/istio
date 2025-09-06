@@ -93,7 +93,109 @@ spec:
 	        \_ kubectl exec -ti -n test test -- curl --head http://httpbin.default.svc:8000
 		  \_Veja que agora retorna um 200
 
+Caso seu lab não tenha, crie um namespace com o nome app e injete o istio nele, também faça a entrega de um pod de test.
+(Sim não sem sequencias de comandos aqui até esse momento já fizemos isso em outros labs ....)
 
+Show, estando tudo certo rode uma chamada curl de dentro do pod de test para a app httpbin;
+\_kubectl exec -ti test -n app -- curl --head httpbin.default.svc:8000
+  \_Aqui é esperado um 403, devido o fato de apenas o namespace test pode receber chamadas, Vamos ajustar isso adicionando o namespace app.
+    \_vim auth_policy.yaml
+
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: httpbin-auth-policy
+spec:
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: ["test", "app"]
+      to:
+        - operation:
+            methods: ["GET", "HEAD"]
+
+Aplique;
+\_kubectl apply -f auth_policy.yaml
+  \_Rode uma nova chamada curl;
+    \_kubectl exec -ti test -n app -- curl --head httpbin.default.svc:8000
+      \_Agora é esperado um 200
+        \_Show, maravilha agora vamos remover essa atual policy e vamos criar uma de DENY;
+	   \_kubectl delete -f auth_policy.yaml
+
+Boa, com a policy removida vamos criar uma nova;
+\_vim auth_policy_deny.yaml
+
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: httpbin-auth-deny-policy
+  namespace: default
+spec:
+  action: DENY
+  rules:
+    - to:
+        - operation:
+            paths: ["/delay"]
+
+Aplique;
+\_kubectl apply -f auth_policy_deny.yaml
+  \_Você vai receber o seguinte alerta;
+     Warning: configured AuthorizationPolicy will deny all traffic to TCP ports under its scope due to the use of only HTTP attributes in a DENY rule; it is recommended to explicitly specify the port
+     authorizationpolicy.security.istio.io/httpbin-auth-deny-policy created
+     \_Esta tudo bem, siga em frente, volte no auth_policy.yaml e deixe ele assim;
+
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: httpbin-auth-policy
+spec:
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: ["test"]
+      to:
+        - operation:
+            methods: ["GET", "HEAD"]
+            paths: ["/get"]
+
+Aplique;
+\_kubectl apply -f auth_policy.yaml
+
+Show agora rode um curl partindo do namespace test para o httpbin;
+\_kubectl exec -ti test -n app -- curl http://httpbin.default.svc:8000/delay/1
+  \_Agora é esperado um => RBAC: access denied
+    \_Agora rode um novo curl, mas aponte para o /GET, rode primeiro partindo do namespace test depois do name space app;
+      \_kubectl exec -ti test -n test -- curl http://httpbin.default.svc:8000/get
+      \_kubectl exec -ti test -n app -- curl http://httpbin.default.svc:8000/get
+        \_Agora você recebe um 200, veja que do namespace app é negado e do name space test é liberado, o que é totalmente esperado pois apenas o namespace test esta liberado.
+          \_Boua, vamos em frente e vamos ajustar nossa policy, porém agora vamos  usar o selector para isso;
+	    \_vim auth_policy.yaml
+
+apiVersion: security.istio.io/v1 
+kind: AuthorizationPolicy
+metadata:
+  name: httpbin-auth-policy
+spec:
+  action: ALLOW
+  selector:
+    matchLabels:
+      app: httpbin
+  rules:
+    - from:
+        - source:
+            namespaces: ["app"]
+      to:
+        - operation:
+            methods: ["GET", "HEAD"]
+            paths: ["/get"]
+
+Aplique;
+\_kubectl apply -f auth_policy.yaml
+  \_Faça um novo teste de chamada curl partindo do namespace app e veja que agora ele responde enquanto o namespace test não responde mais;
+    \_kubectl exec -ti test -n app -- curl http://httpbin.default.svc:8000/get
+    \_kubectl exec -ti test -n test -- curl http://httpbin.default.svc:8000/get
 
 
 
