@@ -1,0 +1,26 @@
+Workload Entry
+
+O workload entry é uma maneira de registrar um serviço externo dentro do mesh, é de maneira analoga o inverso do service entry, que registra um endpoint externo dentro do cluster.
+E é sempre bom ter em mente que o workload entry, depende de um service entry.
+
+Show vambora para o Hands-on =)
+
+Fique ligado pois vamos instalar o istio estou partindo do principio que é um cluster de k8s "limpo".
+Ajuste o arquivo de configuração de instalação do istio;
+\_vim demo.yaml
+
+...
+  meshConfig:
+    outboundTrafficPolicy:
+      mode: REGISTRY_ONLY
+...
+
+Valide a configuração;
+\_istioctl validate -f demo.yaml
+  \_Estando tudo ok, instale;
+    \_istioctl install -f demo.yaml
+
+
+Agora suba um nginx externo ao cluster de k8s.
+
+
