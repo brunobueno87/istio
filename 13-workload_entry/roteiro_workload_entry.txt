@@ -22,5 +22,63 @@ Valide a configuração;
 
 
 Agora suba um nginx externo ao cluster de k8s.
+Pós isso suba um pod do nginx de test;
+\_kubectl run test --image=nginx
+  \_Agora rode um curl apontando para o nginx externo;
+    \_kubectl exec -ti test -- curl --head http://192.168.200.5
+      \_É esperado um erro da familia 500 pois o nginx não esta dentro do cluter é um componente externo
 
+Agora vamos em frente, e vamos criar nossa workload entry;
+\_vim we.yaml
 
+apiVersion: networking.istio.io/v1beta1
+kind: WorkloadEntry
+metadata:
+  name: external-app-we
+  namespace: default
+spec:
+  address: 192.168.200.5
+  labels:
+    app: external
+
+Aplique;
+\_kubectl apply -f we.yaml
+   \_Verifique;
+     \_kubectl get we
+
+Agora vamos em frente e vamos criar nossa Service entry;
+\_vim se.yaml
+
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: external-app-se
+  namespace: default
+spec:
+  hosts:
+  - app.internal.com
+  ports:
+  - number: 80
+    name: http
+    protocol: HTTP
+  resolution: STATIC
+  workloadSelector:
+    labels:
+      app: external
+Aplique;
+\_kubectl apply -f se.yaml
+   \_Verifique;
+     \_kubectl get se
+
+Agora rode um curl novamente partindo do pod de test;
+\_kubectl exec -ti test -- curl http://app.internal.com
+
+Show, agora vamos fazer uma brincadeira, vamos subir um pod e vamos carregar ele dentro do workload;
+\_kubectl run nginx --image=nginx --labels="app=external"
+  \_Agora vamos entrar dentro desse novo pod;
+    \_kubectl exec -ti nginx -- /bin/bash
+      \_echo "This is an nginx pod" > /usr/share/nginx/html/index.html
+        \_kubectl exec -ti test -- curl http://app.internal.com
+           \_Repita as chamadas e veja que vai intercalar entre o externo e interno
+
+E isso é tudo para o nosso lab de workload entry, agora avance para problemas comuns e até o momento em que esse texto foi escrito isso é tudo para a prova ICA
