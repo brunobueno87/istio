@@ -1,1 +1,11 @@
+Para a prova esta parte pode ser um mix de pratica com perguntas de mutipla escolha. Um dos problemas comuns no Istio é tentar aplicar algo em um determinado name space, e esse não tem o istio instalado então nunca esqueça do show labels;
+\_kubectl get ns --show-labels
+
+Um outro comando que pode te ajudar bastante é o analyze;
+\_istioctl analyze -n test
+   \_Este comando verifica se você não tiver o istio injetado no seu namespace, ele vai gerar o comando para você.
+     \_kubectl label namespace test istio-injection=enabled
+
+Um outra dica importante é que, as coisas podem estar mal configuradas então sempre olhe porta do services para ver se esta correta, espere para que algumas coisas se propagem entre os proxys. Gere dados o suficiente quando estiver certo de que a config esta correta mas o resultado não corresponde.
+
 
