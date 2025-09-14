@@ -1,0 +1,91 @@
+Canary Upgrades
+
+Upgrading Istio pode ser feito utilizando a estatégia canary deployment que consiste em entregar uma nova versão de control plane do Istio, e ir migrando alguns workloads para essa nova versão, com isso você vai acompanhando se a nova versão se comporta adequadamente e vai chaveando novos workloads gradativamente. Este metódo é mais seguro que o metodo in-place upgrade e é atualmente o médotod mais recomentado.
+
+Quando instalamos Istio, a instalação revision pode ser usada para entregar multiplas controls planes independentes ao mesmo tempo. Uma canary revision para um upgrade pode ser iniciado instalalndo uma nova versão do Istio proximo da versão antiga, usando uma revision diferente. Cada revision é um completo Istio implementação de control plane com seu proprio deployment, Service, etc.
+
+Antes de você atualizar
+
+Antes de você atualizar o Istio, é recomendado executar o comando istioctl x precheck comando para ter certeza que o upgrade é compativel com seu ambiente.
+Sendo assim já vamos em frente e vamos rodar esse comando no nosso cluster;
+\_istioctl x precheck
+   \_É esperado uma saida parecida com essa aqui;
+✔ No issues found when checking the cluster. Istio is safe to install or upgrade!
+  To get started, check out https://istio.io/latest/docs/setup/getting-started/
+
+OBS; Quando se usa upgrades baseado em revision você pode pular atravez de 2 minor verisions é suportado ( você pode atualizar diretamente da versão 1.15 para 1.17). Isto é um contrast comparado com upgrade in-place, onde você tem que atualizar para a proxima versão sem a possibilidade de poder pular de versão.
+
+Control Plane
+
+Para instalar uma nova revisão chamada canary, você deve configurar o campo revision como mostrado a seguir;
+
+OBS; Em um ambiente produtivo uma melhor maneira/estratégia de nomes seria o nome esta alinhado com a versão correspondente, porem você deve subtituir . por - porque . não é um caracter permitido de ser utilizado em nomes de revisions. Exemplo de nome, revision=1-27-1 para Istio 1.27.1
+
+Boa vamos em frente e agora vamos instalar uma revision canary no nosso cluster;
+\_istioctl install --set revision=canary
+  \_É esperado uma saida assim;
+This will install the Istio 1.18.2 default profile with ["Istio core" "Istiod" "Ingress gateways"] components into the cluster. Proceed? (y/N) y
+✔ Istio core installed
+✔ Istiod installed
+✔ Ingress gateways installed
+✔ Installation complete
+
+Após instalar a revision canary, você ira ter dois control plane deployments e services rodando lado a lado;
+Verifique os controls planes;
+\_kubectl get pods -n istio-system -l app=istiod
+NAME                             READY   STATUS    RESTARTS      AGE
+istiod-6df64b8546-89597          1/1     Running   9 (39m ago)   15d
+istiod-canary-77f5b8fb6d-qsjrt   1/1     Running   0             9s
+
+Verifique os services;
+\_kubectl get svc -n istio-system -l app=istiod
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                                 AGE
+istiod          ClusterIP   10.106.243.14   <none>        15010/TCP,15012/TCP,443/TCP,15014/TCP   15d
+istiod-canary   ClusterIP   10.98.243.187   <none>        15010/TCP,15012/TCP,443/TCP,15014/TCP   43s
+
+Você vai ver que também existe 2 sidecar injectior configurados, incluindo a nova versão;
+Rode o comando;
+\_kubectl get mutatingwebhookconfigurations
+  \_É esperado uma saida parecida com;
+NAME                            WEBHOOKS   AGE
+istio-revision-tag-default      4          15d
+istio-sidecar-injector          4          15d
+istio-sidecar-injector-canary   2          4m6s
+
+Boa, vamos em frente e vamos criar um namespace;
+\_kubectl create ns test-ns
+
+Agora vamos injetar o istio nesse novo namespace;
+\_kubectl label namespace test-ns istio-injection=enabled
+
+Agora entre um pod de teste nesse novo namespace;
+\_kubectl run nginx --image=nginx -n test-ns
+
+Veja qual a versão de proxy esta rodando nesse sidecar desse pod de teste;
+\_istioctl proxy-status | grep "\.test-ns "
+
+Perfeito agora vamos mudar label desse namespace para versão canary;
+\_kubectl label namespace test-ns istio-injection- istio.io/rev=canary
+
+Verifique as labels;
+\_kubectl get ns --show-labels
+
+Show agora remova e execute novamente um novo pod de teste nesse novo namespace, e depois verifique a versão de proxy de sidecar utilizada;
+\_istioctl proxy-status | grep "\.test-ns "
+   \_É espera que esteja utilizando a versão canary, algo parecido com;
+     \_istiod-canary-77f5b8fb6d-qsjrt
+
+
+Boa, espero que você tenha entendido e acompanhado o que fizemos até aqui, pois acabos de implementar um canary upgrade na pratica utilizando um pod de teste.
+
+Porem agora para ficar um lab mais completo vamos simular um cenário mais proximo de um ambiente produtivo, vamos usar "stable revision lavels".
+
+Stable revision labels
+
+
+
+
+
+
+
+
