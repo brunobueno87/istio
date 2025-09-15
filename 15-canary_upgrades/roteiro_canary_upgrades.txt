@@ -105,9 +105,9 @@ Considerando um cluster com 2 revisions instaladas, 1-26-1 e 1-27-1. O cluster o
 \_kubectl label ns app-ns-3 istio.io/rev=prod-canary
 
 4. Suba aplicações de exemplo curl pod em cada namespace:
-\_kubectl apply -n app-ns-1 -f samples/curl/curl.yaml
-\_kubectl apply -n app-ns-2 -f samples/curl/curl.yaml
-\_kubectl apply -n app-ns-3 -f samples/curl/curl.yaml
+\_kubectl apply -n app-ns-1 -f nginx.yaml
+\_kubectl apply -n app-ns-2 -f nginx.yaml
+\_kubectl apply -n app-ns-3 -f nginx.yaml
 
 5. Verifique as apps mapeadas para seus respectivos control plane com o comando;
 \_istioctl ps
