@@ -111,6 +111,46 @@ Considerando um cluster com 2 revisions instaladas, 1-26-1 e 1-27-1. O cluster o
 
 5. Verifique as apps mapeadas para seus respectivos control plane com o comando;
 \_istioctl ps
+   \_É esperado uma saida mais ou menos assim;
+NAME                                          CLUSTER        CDS        LDS        EDS        RDS        ECDS         ISTIOD                             VERSION
+nginx-deployment-576c6b7b6-f9wct.app-ns-3     Kubernetes     SYNCED     SYNCED     SYNCED     SYNCED     NOT SENT     istiod-1-27-1-6bdd6d4ff9-s88hd     1.18.2
+nginx-deployment-576c6b7b6-n9vmv.app-ns-2     Kubernetes     SYNCED     SYNCED     SYNCED     SYNCED     NOT SENT     istiod-1-26-1-64bff564c6-grqp5     1.18.2
+nginx-deployment-576c6b7b6-xj2fh.app-ns-1     Kubernetes     SYNCED     SYNCED     SYNCED     SYNCED     NOT SENT     istiod-1-26-1-64bff564c6-grqp5     1.18.2
+
+
+6.Você pode mapear os namespaces tageados com o comando;
+\_istioctl tag list
+   \_É esperado uma saida parecida com essa aqui;
+TAG         REVISION NAMESPACES
+default     1-26-1   
+prod-canary 1-27-1   app-ns-3
+prod-stable 1-26-1   app-ns-1,app-ns-2
+
+7.Caso você já tenha validado alguns workloads e vai fazer o chaveamento total você pode atualizar todos os outros workloads de uma vez, sobreponto a label prod-stable apontando ela para a versão 1-27-1. Para isso rode o comando;
+\_istioctl tag set prod-stable --revision 1-27-1 --overwrite
+Revision tag "prod-stable" created, referencing control plane revision "1-27-1". To enable injection using this
+revision tag, use 'kubectl label namespace <NAMESPACE> istio.io/rev=prod-stable'
+
+Reinicie o deployments dos namespaces app-ns-1 e app-ns-2;
+\_kubectl rollout restart deployment -n app-ns-1
+\_kubectl rollout restart deployment -n app-ns-2
+
+Verifique agora aplicações que apontam para o control-plane mapeado;
+\_istioctl ps
+NAME                                           CLUSTER        CDS        LDS        EDS        RDS        ECDS         ISTIOD                             VERSION
+nginx-deployment-54575dcc8f-mmdzb.app-ns-1     Kubernetes     SYNCED     SYNCED     SYNCED     SYNCED     NOT SENT     istiod-1-27-1-6bdd6d4ff9-s88hd     1.18.2
+nginx-deployment-576c6b7b6-f9wct.app-ns-3      Kubernetes     SYNCED     SYNCED     SYNCED     SYNCED     NOT SENT     istiod-1-27-1-6bdd6d4ff9-s88hd     1.18.2
+nginx-deployment-c5d6c496d-s8km2.app-ns-2      Kubernetes     SYNCED     SYNCED     SYNCED     SYNCED     NOT SENT     istiod-1-27-1-6bdd6d4ff9-s88hd     1.18.2
+
+
+Adicionar Default tag
+\_Fazer o teste de criar um novo name space 
+\_injetar o istio nesse name space
+\_entregar um nginx de teste
+\_Validar em qual versão ele esta
+
+
+
 
 
 
