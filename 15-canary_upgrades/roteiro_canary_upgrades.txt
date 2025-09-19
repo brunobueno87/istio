@@ -80,11 +80,11 @@ Boa, espero que você tenha entendido e acompanhado o que fizemos até aqui, poi
 
 Porem agora para ficar um lab mais completo vamos simular um cenário mais proximo de um ambiente produtivo, vamos usar "stable revision lavels".
 
-Stable revision labels
+=> Stable revision labels
 
 Manualmente relabeling namespaces quando movendo eles para uma nova versão pode ser tedioso e propenso a erro. Revision tags resolve esse problema, Revision tags são estaveis identificadores que pontuam as revisões e podem ser usador para evitar relabeling namespaces. Melhor que relabeling namespace, um mesh operator pode simplismente mudar a tag para apontar para uma nova revision. Todos os namespaces "labeleados" com aquela tag iram ser atualizados ao mesmo tempo.
 
-Exemplo de Uso
+=> Exemplo de Uso
 
 Considerando um cluster com 2 revisions instaladas, 1-26-1 e 1-27-1. O cluster operator cria uma revision tag prod-stable, apontando para a versão velha, estavel 1-26-1 version, e uma revision tag prod-canary apontando para a mais nova 1-27-1 revision. Esse estado/nível de configuração pode ser alcançado seguindo esses comandos:
 
@@ -143,13 +143,35 @@ nginx-deployment-576c6b7b6-f9wct.app-ns-3      Kubernetes     SYNCED     SYNCED 
 nginx-deployment-c5d6c496d-s8km2.app-ns-2      Kubernetes     SYNCED     SYNCED     SYNCED     SYNCED     NOT SENT     istiod-1-27-1-6bdd6d4ff9-s88hd     1.18.2
 
 
-Adicionar Default tag
-\_Fazer o teste de criar um novo name space 
-\_injetar o istio nesse name space
-\_entregar um nginx de teste
-\_Validar em qual versão ele esta
+=> Adicionar Default tag
 
+A revisão apontada pela tag default é considerada a revisão padrão e possui um significado semântico adicional. a revisão padrão executa as seguintes funções;
+\_Injeta sidecars para o selector de namespace (istio-injection=enabled), o selector de objeto (sidecar.istio.io/inject=true) e os selectors (istio.io/rev=default)
+\_Valida recursos do Istio
+\_Assume o bloqueio de liderança das revisões não padrão e executa responsabilidades exclusivas da malha (como atualizar o status de recursos)
 
+Para tornar a revisão 1-27-1 a padrão, execute;
+\_istioctl tag set default --revision 1-27-1
+
+=> Desistalando control plane antigo
+
+Depois de atualizar ambos control plane e data plane, você pode desistalar o velho control plane. O velho pode ser removido utilizando uninstalls apontando para a revision 1-26-1:
+\_istioctl uninstall --revision 1-26-1 -y
+
+Garanta que a antiga versão foi removida;
+\_kubectl get pods -n istio-system -l app=istiod
+
+=> Limpando o lab
+
+Limpe as revisions tags criadas:
+\_istioctl tag remove prod-stable
+\_istioctl tag remove prod-canary
+
+Limpe os namespaces usadados para canary upgrade com revision labels:
+\_kubectl delete ns istio-system test-ns
+
+Limpe os namespaces usados para canary upgrades com revision tags:
+\_kubectl delete ns istio-system app-ns-1 app-ns-2 app-ns-3
 
 
 
