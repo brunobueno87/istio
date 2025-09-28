@@ -1,12 +1,12 @@
 Ambient Mesh
 
-O Istio tem um modo chamado side carless mode, conhecido como Ambient mesh, que é relativamente mais leve e
+O Istio tem um modo chamado side carless, conhecido como Ambient mesh, que é relativamente mais leve e
 mais rápido que o sidecar mode. ambient mesh divide o sidecar mode em dois;
 Z tunnel
 Waypoint proxy
 
 Z tunnel é baseado no agent deployed como um Daemonset atrávez de todos os nodes. O mesmo intercepta inbound
-e outbound traffic. Manudeia a criptografia e a descriptografia ou seja (mTLS). Autenticação, e também os 
+e outbound traffic. Manuseia a criptografia e a descriptografia ou seja (mTLS). Autenticação, e também os 
 logs para o pod traffic. ele opera na camada 4 de Network. Que é um load balancing, service discovery, 
 roteamento e healhty endpoints.
 
@@ -23,11 +23,12 @@ Instalação
 
 O pré-rec para instalar o istio é que você precisa de um kubernetes cluster. Existem duas formas de instalar 
 o istio você pode usar o istioctl ou o Helm.
-Antes de instalar evidentement nós precisamos baixar ele. Um ponto sw observação é que o istioctl não é o 
+Antes de instalar evidentemente nós precisamos baixar ele. Um ponto de observação é que o istioctl não é o 
 istio em si, são coisas distintas, então preste atenção pois você pode muito bem estar em 1 versão de istioctl
 e outra totalmente diferente de istio.
 
 ***Antes de qualquer coisa, suba um nginx de teste no namespace default***
+\_kubectl run test --image=nginx
 
 Bom vamos começar rodando o comando;
 \_curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.26.3 sh -
