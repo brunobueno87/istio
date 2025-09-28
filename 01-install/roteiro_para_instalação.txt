@@ -1,0 +1,145 @@
+Instalação Istio Ambient Mode via cli
+
+Para instalar o Istio em modo Ambient Mode é muito similar com o que já fizemos basta mudar o profile, entãoi vamos em frente, Estou partindo do principio que você esta com um cluster limpo de k8s e que o istio não esta instalado no seu cluster. então partindo disso, vamos em frente e instalar o istio em Ambiente Mode;
+\_istioctl install --set profile=ambient -y
+
+Após finalizar esse comando, vamos checar os pods do istio;
+\_kubectl get pods -n istio-system
+  \_OBS; Veja que a saída é um pouco diferente temos 3 pods agora (istio-cni-node + istiod + ztunnel)
+
+Boa, tanto o zTunnel como o istio-cni-node são daemon-set, rode o comando para verificar;
+\_kubectl get ds -n istio-system
+
+Boa, um outro ponto diferente, nesse método é a forma como labeamos os namespace, o comando é um pouco diferente;
+\_kubectl label namespace default istio.io/dataplane-mode=ambient
+
+Para evidenciar a diferença entre os dois tipos de instalação rode um nginx que geralmente usamos nos nossostestes;
+\_kubectl run test --image=nginx
+  \_kubectl get pods
+    \_Veja que mesmo o namespace labeado, ainda assim o pod de app que acabamos de entregar está 1/1
+
+Agora em outro terminal, monitore os logs do pod Ztunnel;
+\_kubectl -n istio-system logs id-do-pod-ztuneel
+
+Volte para o outro terminal e rode o comando;
+\_kubectl exec test -- curl --head www.google.com
+  \_Veja que o retorno é um 200, e também observe os logs do ztunnel, veja que ele interceptou essa chamada.
+
+Boa, vamos em frente e rode o comando;
+\_kubectl get crd
+  \_OBS; Precisamos do gateway e httproute
+
+Vamos instalar custons crd;
+\_kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/dowload/v1.3.0/standard-install.yaml
+
+Boa, após instalados, vamos em frente e instalar o waypoint no namespace;
+\_istioctl waypoint apply -n default
+
+Rode novamente kubectl get pods e veja que ao lado do pode de test, temos também o pod de waypoint. é esse o pod que vai "manusear" a camada 7.
+
+Boa, para o exame isso é o suficiente, caso queira limpar o lab rode;
+\_istioctl waypoint delete --all -n default
+
+Aqui é o fim da instalação ambient mode
+
+========================================================
+
+Instalão do Istio via Helm
+
+Obviamente como estamos falando de instalação estou partindo do principio que estamos com um cluster limpo de k8s.
+Vamos verificar se temos o Helm;
+\_$which helm
+  /usr/sbin/helm
+
+Vamos instalar um repo;
+\_helm repo add istio https://istio-release.storage.googleapis.com/charts
+
+Verifique;
+\_helm repo list
+
+Rode o comando;
+\_helm install istio-base istio/base --namespace istio-system --create-namespace --version 1.26.3 --set profile=demo
+
+Pós esse comando de instalação, verifique os crd;
+\_kubectl get crd
+
+Rode o comando para ajustar questões de resources;
+\_helm install istiod istio/istiod --namespace istio-system --version 1.26.3 --set profile=demo --set pilot.resources.requests.memory=128Mi --set pilot.resources.requests.cpu=250m
+
+Verifique;
+\_kubectl get pods -n istio-system
+
+Vamos em frente e vamos instalar o istio-ingress;
+\_helm install istio-system istio/gateway --namespace istio-ingress --version 1.26.3
+
+Verifique;
+\_kubectl get pods -n istio-system
+
+Agora injete o istio no namespace default;
+\_pós isso rode uma app de teste para ver se tudo esta ok;
+   \_kubectl run redis --image=redis
+     \_kubectl get pods
+       \_É esperado 2/2
+
+Um ponto importante é que nós conseguimos fazer customizações usando o helm. Você pode exportar a config para um yaml e posteriormente editar esse yaml. Exemplo;
+\_helm show values istio/istiod > istiod.yaml
+\_helm show values istio/gateway > gateway.yaml
+\_vim istiod.yaml
+\_vim gateway.yaml
+
+Imaginando que você fez algum tipo de customização, você pode instalar isso da seguinte forma;
+\_helm upgrade istio istio/istiod -n istio-system -f istiod.yaml
+
+Para remover;
+\_helm uninstall istio-ingress -n istio-system
+
+E esse é o fim do roteiro de instalação via helm.
+
+========================================================
+
+Instalação do Istio mode Customize Instalation
+
+Nada mais é que usar um istio-operator no k8s. Isso é feito especificando um arquivo de yaml com todos os detalhes de config desejado;
+\_istioctl  install -f demo.yaml
+
+Para remover;
+\_istioctl uninstall --set profile=default purge
+
+
+==========================================================
+
+Instalação do Istio via cli
+
+Comando para instalar aplicação demo;
+\_kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.11/samples/bookinfo/platform/kube/bookinfo.yaml
+
+Comando para baixar o Istio;
+\_curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.18.2 sh -
+
+Comando para "configurar" istioctl;
+\_export PATH=$PWD/bin:$PATH
+\_istioctl version
+
+Comando para instalar o Istio no cluster;
+\_istioctl install --set profile=demo -y
+
+Comando para verificar se tem o istio habilidato em algum name-space;
+\_istioctl analyze -n default
+
+Comando para habilitar o Istio em um name-space;
+\_kubectl label namespace default istio-injection=enabled
+
+OBS; Após habilitar o Istio rode novamente o comando analyze
+
+Comando para deletar aplicação demo;
+\_kubectl delete -f https://raw.githubusercontent.com/istio/istio/release-1.11/samples/bookinfo/platform/kube/bookinfo.yaml
+
+Vamos verificar se o Istio esta de fato habilitado no name-space verifcando as labels do name space;
+\_kubectl get ns --show-labels
+
+Agora com o name space limpo vamos instalar novamente a app de demo;
+\_kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.11/samples/bookinfo/platform/kube/bookinfo.yaml
+
+## EXTRA ## - Comando para injetar o proxy;
+\_istioctl kube-inject -f pod.yaml | kubectl apply -f
+

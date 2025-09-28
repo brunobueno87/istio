@@ -1,0 +1,49 @@
+Ambient Mesh
+
+O Istio tem um modo chamado side carless mode, conhecido como Ambient mesh, que é relativamente mais leve e mais rápido que o sidecar mode. ambient mesh divide o sidecar mode em dois;
+Z tunnel
+Waypoint proxy
+
+Z tunnel é baseado no agent deployed como um Daemonset atrávez de todos os nodes. O mesmo intercepta inbound e outbound traffic. Manudeia a criptografia e a descriptografia ou seja (mTLS). Autenticação
+, e também os logs para o pod traffic. ele opera na camada 4 de Network. Que é um load balancing, service discovery, roteamento e healhty endpoints.
+
+Waypoint é um proxy que roda como um pod, não um container é standalone workload, não como um sidecar proxy padrão. O waypoint envoy proxy atua na camada 7, então aplicações com splitting traffic, rewrite, path base routing, header matching, fault injection, abort.....Esses Waypoint proxies são deployados por namespaces. E eles não suportam algumas coisas, como por exemplo;
+\_Timeout retries
+\_mirroring
+
+Ponto de observação é que o exame cobra apenas instalação do ambient mode e  como labear os namepaces.
+
+Instalação
+
+O pré-rec para instalar o istio é que você precisa de um kubernetes cluster. Existem duas formas de instalar o istio você pode usar o istioctl ou o Helm.
+Antes de instalar evidentement nós precisamos baixar ele. Um ponto sw observação é que o istioctl não é o istio em si, são coisas distintas, então preste atenção pois você pode muito bem estar em 1 versão de istioctl e outra totalmente diferente de istio.
+
+***Antes de qualquer coisa, suba um nginx de teste no namespace default***
+
+Bom vamos começar rodando o comando;
+\_curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.26.3 sh -
+
+OBS; Estamos partindo do principio que você tem um cluster-limpo de k8s rodando no seu lab.
+
+Agora entre no diretório do Istio;
+\_cd istio-1.26.3/
+   \_Rode o comando export;
+      \_export PATH=$PWD/bin:$PATH
+
+Agora rode o comando;
+\_istioctl version
+
+Veja que agora o istioctl esta "instalado" com isso podemos avançar para a instalação do istio no cluster k8s;
+\_istioctl install --set profile=demo -y
+
+Apenas por fins didaticos (porém é bom ter esse comando em mente para prova) rode um analyze apontando para o namespace default;
+\_istioctl analyze -n default
+   \_Esse comando vai te mostrar que o namespace não esta com o istio instalado e qual comando você precisa utilizar para injetar o istio no seu namespace;
+     \_kubectl label namespace default istio-injection=enable
+       \_Pós esse comando rode um analyze novamente e veja que o warning mudou
+
+Bom agora você precisa ou deletar e entregar novamente ou fazer um restart dos deployments do namespace default, e veja aque agora eles vão ficar 2/2.
+
+OBS; Um outro ponto importante para se ter em mente é que é possivel injetar o istio em um workload que está rodando em um namespace que não tenha o istio injetado. Exemplo; istioctl kube-inject -f pod.yaml | kubectl apply -f -
+
+
