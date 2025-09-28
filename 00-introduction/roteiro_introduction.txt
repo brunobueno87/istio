@@ -61,3 +61,8 @@ OBS; Um outro ponto importante para se ter em mente é que é possivel injetar o
 rodando em um namespace que não tenha o istio injetado. Exemplo; 
 istioctl kube-inject -f pod.yaml | kubectl apply -f -
 
+Agora para limpar o lab e ir para o proximo passo rode os seguintes comandos;
+\_kubectl -n default delete deploy  (todos deploys)
+\_istioctl uninstall --purge -y
+\_kubectl delete namespace istio-system
+
