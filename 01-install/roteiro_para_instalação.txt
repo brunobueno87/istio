@@ -1,6 +1,8 @@
 Instalação Istio Ambient Mode via cli
 
-Para instalar o Istio em modo Ambient Mode é muito similar com o que já fizemos basta mudar o profile, entãoi vamos em frente, Estou partindo do principio que você esta com um cluster limpo de k8s e que o istio não esta instalado no seu cluster. então partindo disso, vamos em frente e instalar o istio em Ambiente Mode;
+Para instalar o Istio em modo Ambient Mode é muito similar com o que já fizemos basta mudar o profile, então
+vamos em frente, Estou partindo do principio que você esta com um cluster limpo de k8s e que o istio não esta
+instalado no seu cluster. então partindo disso, vamos em frente e instalar o istio em Ambiente Mode;
 \_istioctl install --set profile=ambient -y
 
 Após finalizar esse comando, vamos checar os pods do istio;
@@ -10,10 +12,12 @@ Após finalizar esse comando, vamos checar os pods do istio;
 Boa, tanto o zTunnel como o istio-cni-node são daemon-set, rode o comando para verificar;
 \_kubectl get ds -n istio-system
 
-Boa, um outro ponto diferente, nesse método é a forma como labeamos os namespace, o comando é um pouco diferente;
+Boa, um outro ponto diferente, nesse método é a forma como labeamos os namespace, o comando é um pouco 
+diferente;
 \_kubectl label namespace default istio.io/dataplane-mode=ambient
 
-Para evidenciar a diferença entre os dois tipos de instalação rode um nginx que geralmente usamos nos nossostestes;
+Para evidenciar a diferença entre os dois tipos de instalação rode um nginx que geralmente usamos nos nossos
+testes;
 \_kubectl run test --image=nginx
   \_kubectl get pods
     \_Veja que mesmo o namespace labeado, ainda assim o pod de app que acabamos de entregar está 1/1
@@ -35,7 +39,8 @@ Vamos instalar custons crd;
 Boa, após instalados, vamos em frente e instalar o waypoint no namespace;
 \_istioctl waypoint apply -n default
 
-Rode novamente kubectl get pods e veja que ao lado do pode de test, temos também o pod de waypoint. é esse o pod que vai "manusear" a camada 7.
+Rode novamente kubectl get pods e veja que ao lado do pode de test, temos também o pod de waypoint. 
+é esse o pod que vai "manusear" a camada 7.
 
 Boa, para o exame isso é o suficiente, caso queira limpar o lab rode;
 \_istioctl waypoint delete --all -n default
@@ -46,7 +51,8 @@ Aqui é o fim da instalação ambient mode
 
 Instalão do Istio via Helm
 
-Obviamente como estamos falando de instalação estou partindo do principio que estamos com um cluster limpo de k8s.
+Obviamente como estamos falando de instalação estou partindo do principio que estamos com um cluster limpo 
+de k8s.
 Vamos verificar se temos o Helm;
 \_$which helm
   /usr/sbin/helm
@@ -81,7 +87,8 @@ Agora injete o istio no namespace default;
      \_kubectl get pods
        \_É esperado 2/2
 
-Um ponto importante é que nós conseguimos fazer customizações usando o helm. Você pode exportar a config para um yaml e posteriormente editar esse yaml. Exemplo;
+Um ponto importante é que nós conseguimos fazer customizações usando o helm. Você pode exportar a config para 
+um yaml e posteriormente editar esse yaml. Exemplo;
 \_helm show values istio/istiod > istiod.yaml
 \_helm show values istio/gateway > gateway.yaml
 \_vim istiod.yaml
@@ -99,7 +106,8 @@ E esse é o fim do roteiro de instalação via helm.
 
 Instalação do Istio mode Customize Instalation
 
-Nada mais é que usar um istio-operator no k8s. Isso é feito especificando um arquivo de yaml com todos os detalhes de config desejado;
+Nada mais é que usar um istio-operator no k8s. Isso é feito especificando um arquivo de yaml com todos os 
+detalhes de config desejado;
 \_istioctl  install -f demo.yaml
 
 Para remover;
