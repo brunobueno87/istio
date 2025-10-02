@@ -16,6 +16,9 @@ Boa, um outro ponto diferente, nesse método é a forma como labeamos os namespa
 diferente;
 \_kubectl label namespace default istio.io/dataplane-mode=ambient
 
+Verifique;
+\_kubectl get ns --show-labels
+
 Para evidenciar a diferença entre os dois tipos de instalação rode um nginx que geralmente usamos nos nossos
 testes;
 \_kubectl run test --image=nginx
@@ -34,7 +37,7 @@ Boa, vamos em frente e rode o comando;
   \_OBS; Precisamos do gateway e httproute
 
 Vamos instalar custons crd;
-\_kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/dowload/v1.3.0/standard-install.yaml
+\_kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.3.0/standard-install.yaml
 
 Boa, após instalados, vamos em frente e instalar o waypoint no namespace;
 \_istioctl waypoint apply -n default
@@ -42,8 +45,12 @@ Boa, após instalados, vamos em frente e instalar o waypoint no namespace;
 Rode novamente kubectl get pods e veja que ao lado do pode de test, temos também o pod de waypoint. 
 é esse o pod que vai "manusear" a camada 7.
 
-Boa, para o exame isso é o suficiente, caso queira limpar o lab rode;
+Boa, para o exame isso é o suficiente, caso queira limpar o lab rode os comandos sequencialmente;
 \_istioctl waypoint delete --all -n default
+\_istioctl uninstall --purge -y
+\_kubectl delete ns istio-system
+\_kubectl delete pod test
+\_kubectl label namespace default istio.io/dataplane-mode-
 
 Aqui é o fim da instalação ambient mode
 
@@ -109,6 +116,8 @@ Instalação do Istio mode Customize Instalation
 Nada mais é que usar um istio-operator no k8s. Isso é feito especificando um arquivo de yaml com todos os 
 detalhes de config desejado;
 \_istioctl  install -f demo.yaml
+
+Para o proximo lab-ter um roteiro melhor =)
 
 Para remover;
 \_istioctl uninstall --set profile=default purge
