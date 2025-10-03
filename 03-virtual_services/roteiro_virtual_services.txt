@@ -1,20 +1,34 @@
 Introdução - Virtual Services
 
 Virtual Services, entregam um controle refinado/detalhado, baseado em headers, URIs, parâmetros de consulta etc.
-E essas são funcionalidades que um service do k8s não pode fazer. Basicamente ele faz a mesma coisa só que melhor.
+E essas são funcionalidades que um service do k8s não pode fazer. Basicamente ele faz a mesma coisa só que 
+melhor.
 
-O service do k8s, apenas encaminha o trafego para os pods, você não tem esse nível de controle de camada 7 apenas no service do k8s. Com o Virtual Services é possível gerenciar o tráfego entre diferentes versões de um serviço, você pode fazer canary release adicionando gradualmente uma nova versão, você pode fazer AB testing que permite espelhar o tráfego, pode fazer Blue-green deployments, mudar o trafego da versão antiga para a nova versão, e tudo isso são coisas que o service do k8s não pode fazer.
+O service do k8s, apenas encaminha o trafego para os pods, você não tem esse nível de controle de camada 7 
+apenas no service do k8s. Com o Virtual Services é possível gerenciar o tráfego entre diferentes versões 
+de um serviço, você pode fazer canary release adicionando gradualmente uma nova versão, você pode fazer 
+AB testing que permite espelhar o tráfego, pode fazer Blue-green deployments, mudar o trafego da versão 
+antiga para a nova versão, e tudo isso são coisas que o service do k8s não pode fazer.
 
-Um outro ponto, você também pode utilizar o virtual service para injetar falhas na app, o que é realmente útil para testes de resiliência também podemos configurar retries, timeouts para serviços especificos. E isso ajuda você a gerenciar a confiabilidade da aplicação. Também temos recursos avançaos de load-balancing, que suportam round robin, roteamento ponderado para aqueles lançamentos canários ou A/B testing, você pode fazer least connections, etc...
+Um outro ponto, você também pode utilizar o virtual service para injetar falhas na app, o que é realmente 
+útil para testes de resiliência também podemos configurar retries, timeouts para serviços especificos. 
+E isso ajuda você a gerenciar a confiabilidade da aplicação. Também temos recursos avançados de load-balancing,
+que suportam round robin, roteamento ponderado para aqueles lançamentos canários ou A/B testing, você pode 
+fazer least connections, etc...
 
 Em resumo você ganha um nível de controle e flexibilidade que no K8S service, você não tem.
 
-Hands on Virtual Services
+*** Hands on Virtual Services ***
 
-Vamos configurar 1 Virtual Services bem simples para ir progredindo no seu entendimento. Comece verificando se existe istio habilitado no seu namespace;
+Vamos configurar 1 Virtual Services bem simples para ir progredindo no seu entendimento. Comece verificando 
+se existe istio habilitado no seu namespace;
 \_kubectl get ns --show-labels
-  \_Confirme que o istio está habilitado.
-    \_default  Active  20d  istio-injection=enabled,kubernetes.io/metadata.name=default
+  \_Para esse lab é esperado que você tenha apenas um cluster k8s com o istio instalado porém não injetado
+    em nenhum namespace. Sendo assim a saida vai mostrar que nenhum namespace possui istio.
+    \_Vamos injetar o istio no namespace padrão.
+      \_kubectl label namespace default istio-injection=enabled
+         \_Confirme que o istio está habilitado.
+           \_kubectl get ns --show-labels
 
 
 Show vamos em frente e vamos entregar uma aplicação de teste no namespace default;
@@ -23,7 +37,9 @@ Show vamos em frente e vamos entregar uma aplicação de teste no namespace defa
 Verifique;
 \_kubectl -n default get pod
 
-Boa, se o namespace test não esta criando crie (mas que o istio não esteja habilitado nele).
+Boa, se o namespace test não esta criado crie (mas que o istio não esteja habilitado nele).
+\_kubectl create ns test
+
 Com o namespace criado vamos entrega uma app de test dentro do namespace test;
 \_kubectl run test --image=nginx -n test
 
@@ -38,7 +54,8 @@ Estando tudo certo, vamos entrar no pod de test;
          \_curl httpbin.default.svc:8000/ip
 	    \_É esperado um 200 tbm.
 
-Como já sabemos, o trafego é liberado por default no Istio....show agora vamos em frente e vamos criar nosso primeiro virtual services;
+Como já sabemos, o trafego é liberado por default no Istio....show agora vamos em frente e vamos criar nosso 
+primeiro virtual services;
 \_vim virtual_service
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
@@ -56,7 +73,7 @@ spec:
           number: 8000
 
 Aplique;
-\_kubectl app -f virtual_service.yaml
+\_kubectl apply -f virtual_service.yaml
   Verifique;
   \_kubectl get vs
     \_A saida deve ser algo parecido com o exemplo abaixo;
@@ -75,7 +92,7 @@ Boa, estando tudo certo vamos em frente e vamos entrar agora no pod de test;
 		  \_E a resposta é um 200. A pergunta é pq ?
 
 
-O 200 ainda esta ocorrendo devido o fato de não existir nenhum restrição entre esses namespaces.
+O 200 ainda esta ocorrendo devido o fato de não existir nenhuma restrição entre esses namespaces.
 A chamada esta passando pelo service padrão do k8s.
 Sendo assim agora vamos injetar o istio no namespace de test;
 \_kubectl label namespace test istio-injection=enabled
@@ -103,7 +120,8 @@ Volte a porta do virtual service para 8000 e faça uma nova chamada;
 	 \_Agora é esperado um 200
 
 
-Boa legal agora vamos fazer uma config que se chama rewrite, que nada mais é que criar um match, um novo nome para um nome existente, abaixo vou dar 3 exemplos de chamadas curl, partindo como origem o pod de test;
+Boa legal agora vamos fazer uma config que se chama rewrite, que nada mais é que criar um match, um novo nome 
+para um nome existente, abaixo vou dar 3 exemplos de chamadas curl, partindo como origem o pod de test;
 \_curl -i httpbin.default.svc:8000/user-agent
 \_curl -i httpbin.default.svc:8000/ip
 \_curl -i httpbin.default.svc:8000/hello
@@ -140,5 +158,11 @@ Agora entre novamente no pod de test e faça a chamada para o endpoint /hello;
 \_kubectl exec -ti -n test test -- /bin/bash
   \_curl -i httpbin.default.svc:8000/hello
     \_É esperado um 200 agora.
+
+Limpando o lab;
+\_kubectl delete -f virtual_service.yaml
+\_kubectl delete ns test
+\_kubectl -n default delete deploy httpbin
+\_kubectl label namespace default istio-injection-
 
 

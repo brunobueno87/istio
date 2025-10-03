@@ -1,15 +1,23 @@
-Introdução
+Destination rule
 
-Destination rules aplica policies ao trafego após ele ser roteado (funciona em conjunto com o virtual service) ele aplica regras uma vez que o trafego chega ap virtual services. Exemplo;
+Destination rules aplica policies ao trafego após ele ser roteado (funciona em conjunto com o virtual service)
+ele aplica regras uma vez que o trafego chega ao virtual services. Exemplo;
 
-Imaginando um cenário que você tenha 2 workloads (deployments) e você deseja direcionar 50/50 para cada workload. é com o destination rules que você faz isso.
+Imaginando um cenário que você tenha 2 workloads (deployments) e você deseja direcionar 50/50 para cada 
+workload. é com o destination rules que você faz isso.
 
-Bom dentro de todas as possibilidades que podemos fazer com o destination rules, vamos nos ater por enquanto a uma simples divisão de tráfego, usando tanto os Virtual Services como o destination rules.
+Bom dentro de todas as possibilidades que podemos fazer com o destination rules, vamos nos ater por enquanto 
+a uma simples divisão de tráfego, usando tanto os Virtual Services como o destination rules.
 
-Boa, vamos começar verificando se o name spaces possuem as labels, rode o comando;
+Boa, vamos começar verificando as labels dos dos namespaces do cluster;
 \_kubectl get ns --show-labels
+  \_É esperado que o cluster esteja limpo
 
-Estando tudo certo, que no caso seria o instio estando injetado no namespace default, vamos em frente e entregar a app Helloworld, para isso rode o comando;
+Injete o istio, no namespace default;
+\_kubectl label namespace default istio-injection=enabled
+
+Agora que o namespace default esta com o itios injetado vamos em frente e entregar a app Helloworld, 
+para isso rode o comando;
 \_kubectl apply -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/helloworld/helloworld.yaml
    \_É esperado algo parecido com;
      \_service/helloworld created
@@ -25,13 +33,12 @@ Boa, estando tudo certo verifique;
 
 Show estando tudo certo, vamos criar um novo namespace;
 \_kubectl create ns test
-  \_OBS; Se você esta seguindo esse repo passo a passo e consequentemente já passou pelo passo 01, o name space já esta criado. =)
 
 Injete o istio no namespace;
 \_istioctl analyze -n test
   \_kubectl label namespace test istio-injection=enabled
 
-Boa, vamos em frente e entregar um pod de test no namespace de test;
+Boa, vamos em frente e vamos entregar um pod de test no namespace de test;
 \_kubectl run test --image=nginx -n test
   \_Verifique;
     \_kubectl -n test get pods
@@ -65,7 +72,7 @@ Boa, vamos em frente e agora vamos olhar as labels dos pods;
 
 Show é justamente essas labels que vamos utilizar no nosso destination rule. Vamos criar nosso destination rule;
 \_vim ds.yaml
-apiVersion: networking.istio.io/v1beta1 
+apiVersion: networking.istio.io/v1
 kind: DestinationRule
 metadata:
   name: hello-world-ds
@@ -158,6 +165,13 @@ Volte mais uma vez pra o pod de test e rode varias chamadas curl para a app hell
   \_curl helloworld.default.svc:5000/hello
 
 Show, com isso finalizamos um exemplo pratico de Destination Rules.
-Espero que tenha ficado claro e didatico e que você tenha conseguido replicar com sucesso.....agora vamos em frente e vamos falar de Gateways.
+Espero que tenha ficado claro e didatico e que você tenha conseguido replicar com sucesso.....agora vamos em frente e vamos falar
+de Gateways.
 
-Não esqueca de limpar o lab, que consiste em remover tudo o que fizemos. Nos vemos em breve....
+Limpando o lab;
+\_kubectl delete -f ds.yaml
+\_kubectl delete -f vs.yaml
+\_kubectl delete ns test
+\_kubectl -n default delete deployments.apps helloworld-v1 helloworld-v2
+\_kubectl label namespace default istio-injection-
+
