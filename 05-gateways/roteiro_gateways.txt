@@ -1,11 +1,18 @@
 Gateways
 
-Gateways são o ponto de entrada do "mundo externo" para seus services de istio. Eles são opcionais ou seja você não precisa dele para seus services, porém se por algum motivo você tenha que expor seu workload para o mundo externo é atravéz dele que você pode fazer isso.
+Gateways são o ponto de entrada do "mundo externo" para seus services de istio. Eles são opcionais ou seja 
+você não precisa dele para seus services, porém se por algum motivo você tenha que expor seu workload para o 
+mundo externo é atravéz dele que você pode fazer isso.
 
-Nós temos 2 tipos de gateways para o istio. O primeiro que vamos falar sobre é o ingress gateway que é usado principalmente para gerenciar o tráfego de entrada ao seu cluster.
-O segundo que vamos abordar é o egress gateway que pode ser configurado para gerenciar o tráfego de saída, muito utilizado quando você precisa ter um controle bem rigito das suas apps.
+Nós temos 2 tipos de gateways para o istio. O primeiro que vamos falar sobre é o ingress gateway que é usado 
+principalmente para gerenciar o tráfego de entrada ao seu cluster. O segundo que vamos abordar é o egress 
+gateway que pode ser configurado para gerenciar o tráfego de saída, muito utilizado quando você precisa ter 
+um controle bem rigido das suas apps.
 
-No momento em que estou escrevendo isso, um ponto importante a ser resaltado é o tipo de instalação que já vem com o ingress e egress é o tipo demo. Mas obviamente você pode instalar/habilitar o ingress e o egress gateway em qualquer outro profile de instalação usando o istio operator. Isso é um ponto de observação importante porque isso pode estar na prova então, treine no seu lab como, configurar/aplicar isso.
+No momento em que estou escrevendo isso, um ponto importante a ser resaltado é o tipo de instalação que já 
+vem com o ingress e egress é o tipo demo. Mas obviamente você pode instalar/habilitar o ingress e o egress 
+gateway em qualquer outro profile de instalação usando o istio operator. Isso é um ponto de observação 
+importante porque isso pode estar na prova então, treine no seu lab como, configurar/aplicar isso.
 
 Show, sendo assim vamos iniciar nosso hands-on de Gateway.
 Comece verificando se o ingress e egress esta habilitado no seu cluster;
@@ -19,11 +26,16 @@ Comece verificando se o ingress e egress esta habilitado no seu cluster;
     istio-ingressgateway-6955759965-6284n   1/1     Running   2 (126m ago)   22d
     istiod-5d6b459cb9-dscfx                 1/1     Running   2 (126m ago)   22d
 
-Veja que aparece os pods de ingress e egress....um outro ponto importante aqui é o protocolo o ingress gateway pode lidar com protocolos http, https, tcp, gRPC.
+Veja que aparece os pods de ingress e egress....um outro ponto importante aqui é o protocolo o ingress gateway
+pode lidar com protocolos http, https, tcp, gRPC.
 
-Um gateway istio é frequentemente utilizado para realizar a terminação de TLS. Ele pode gerenciar a criptografia e a descriptografia do tráfego de entrada e saída para o service mesh do istio.
+Um gateway istio é frequentemente utilizado para realizar a terminação de TLS. Ele pode gerenciar a 
+criptografia e a descriptografia do tráfego de entrada e saída para o service mesh do istio.
 
-Gateways do istio suportm HTTP, HTTPS como vimos, pode fazer roteamento baseado em cabeçalhos, caminhos de url, portas e também suporta conexões TCP, o que é muito util para serviços que não são baseados em HTTP, por exemplo, um banco de dados ou protocolos gRPC, que são comumente usados para comunicação entre microserviços no Istio, já que realmente é mais rápida que REST API.
+Gateways do istio suportam HTTP, HTTPS como vimos, pode fazer roteamento baseado em cabeçalhos, caminhos de 
+url, portas e também suporta conexões TCP, o que é muito util para serviços que não são baseados em HTTP, 
+por exemplo, um banco de dados ou protocolos gRPC, que são comumente usados para comunicação entre 
+microserviços no Istio, já que realmente é mais rápida que REST API.
 
 Incoming Traffic Flow - Ingress Gateway
 
@@ -39,7 +51,7 @@ Outgoing Traffic Flow
   \_A partir dai o egress processa a solicitação verificando a rota correspondente.
     \_O Egress processa a request.
       \_E envia a resposta para uma chamada externa seja ela qual for.
-        \_espera a resposta e a envia novamente para o service solicitante.
+        \_Espera a resposta e a envia novamente para o service solicitante.
 
 Show, agora vamos para quele nosso Hands-on maravilhoso que na minha opnião é sempre a melhor parte.
 Bom nesse hands-on vamos nos concentrar no ingress, nesse primeiro momento. Como sempre verifique se o cluster esta com istio habilitado no namespace default.
@@ -77,7 +89,8 @@ Aplique;
 
 Boa agora vamos verificar as labels do pod que corresponde ao ingress-gateway;
 \_kubectl describe pod -n istio-system pod-istio-ingress
-  \_Nesse caso aqui é istio=ingressgateway mas observe no seu lab isso pode estar diferente dependendo da forma como você instalou o istio.
+  \_Nesse caso aqui é istio=ingressgateway mas observe no seu lab isso pode estar diferente dependendo da 
+    forma como você instalou o istio.
 
 Boa agora que já sabemos qual é a label do pod ingress-gateway, vamos em frente e vamos criar nosso gateway;
 \_vim gw.yaml
@@ -111,8 +124,9 @@ Boa, no nosso lab vamos usar um nodeport apenas para fins didaticos. Verifique o
       istiod                 ClusterIP      10.107.110.234   <none>        15010/TCP,15012/TCP,443/TCP,15014/TCP        40d
       \_Pegue o ip do service do istio-ingressgateway. E rode o comando no seu node master;
         \_curl --head --header "Host: book.info.com" http://10.101.96.39
-	  \_E aqui vc ganha um maravilhoso 404, e isso é esperado ta tudo bem, nós precisamos vincular nosso virtualservice com o nosso gateway. Bora lá então e ajustar nosso vs.yaml;
-	  \_vim vs.yaml
+	  \_E aqui vc ganha um maravilhoso 404, e isso é esperado ta tudo bem, nós precisamos vincular nosso 
+	    virtualservice com o nosso gateway. Bora lá então e ajustar nosso vs.yaml;
+	    \_vim vs.yaml
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -147,6 +161,15 @@ content-length: 1683
 server: istio-envoy
 date: Sun, 24 Aug 2025 02:17:44 GMT
 x-envoy-upstream-service-time: 11
-  \_Boua agora sim você tem um 200. E é isso sobre gateways, evidentemente arquivo de gw o ideial é que você utilize um lb de algum cloud provider no hosts mas apenas de forma a ser didatica é assim que configura um mesmo utilizando o ip.
+  \_Boua agora sim você tem um 200. E é isso sobre gateways, evidentemente arquivo de gw o ideial é que você 
+    utilize um lb de algum cloud provider no hosts mas apenas de forma a ser didatica é assim que configura
+    um mesmo utilizando o ip.
 
 Show agora vamos em frente e vamos falar de Service Entries.
+
+Limpando o lab;
+\_kubectl delete -f gw.yaml
+\_kubectl delete -f vs.yaml
+\_kubectl delete -f https://raw.githubusercontent.com/istio/istio/release-1.11/samples/bookinfo/platform/kube/bookinfo.yaml
+
+

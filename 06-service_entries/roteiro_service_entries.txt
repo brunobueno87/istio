@@ -1,27 +1,34 @@
 Service Entry
 
-Nada mais é que uma forma de controlar o tráfego que sai do seu cluster, no service entries você cadastra entradas de registro para objetos fora do seu cluster, como por exemplo banco de dados, VM's, ou qualquer outra coisa, API's e por ai vai...
+Nada mais é que uma forma de controlar o tráfego que sai do seu cluster, no service entries você cadastra 
+entradas de registro para objetos fora do seu cluster, como por exemplo banco de dados, VM's, ou qualquer 
+outra coisa, API's e por ai vai...
 
-E porque isso ? - Mais uma vez o objetivo aqui é controlar e monitorar, contolando o tráfego até para serviços externos conseguimos monitorar.
+E porque isso ? - Mais uma vez o objetivo aqui é controlar e monitorar, contolando o tráfego até para 
+serviços externos conseguimos monitorar.
 
-Um outro benefício de utilizar isso é a Centralização de gestão. Com esse controle conseguimos aplicar policies e configurar retries, timouts, mTLS. Temos também service Discovery para serviços externos. Isso é legal porque com isso nós utilizamos os proxys do Istio para acessar serviços externos, nossos serviços não precisam ficar saindo para a Internet, isso permite um controle mais granular.
+Um outro benefício de utilizar isso é a Centralização de gestão. Com esse controle conseguimos aplicar 
+policies e configurar retries, timouts, mTLS. Temos também service Discovery para serviços externos. Isso é 
+legal porque com isso nós utilizamos os proxys do Istio para acessar serviços externos, nossos serviços não 
+precisam ficar saindo para a Internet, isso permite um controle mais granular.
 
 Remumo do Fluxo;
 
-1.Manage External services and egress traffic centrally.
+1.Manage External services and egress traffic centrally;
  \_2.Apply trafic policies like retries, timeouts and mTLS.
    \_3.Enable service discovery for routing to external services.
      \_4.Enforce fine-grained access control and security.
 
-E agora se já sabe.... Vambora de Hands-on =)
+E agora já sabe.... Vambora de Hands-on =)
 
-Boa, como sempre seguimos principio que o cluster esta "limpo".
+Boa, como sempre seguimos o principio que o cluster esta "limpo".
 Então vamos fazer um dump e instalar o istio com a modificação que necessária 
 \_istioctl profile dump demo -o yaml > demo.yaml
   \_Edite o arquivo;
     \_vim demo.yaml
 
-Procure por uma parte escrita Meshconfig, não se assuste com as configs que ja vem por default, pois por default é omitida a config que queremos adicionar. Então embaixo da config Meshconfig adicione as seguintes linhas;
+Procure por uma parte escrita Meshconfig, não se assuste com as configs que ja vem por default, pois por 
+default é omitida a config que queremos adicionar. Então embaixo da config Meshconfig adicione as seguintes linhas;
 ...
 meshConfig:
   outboundTrafficPolicy:
@@ -52,7 +59,8 @@ Injete a label no namespace;
                  \_curl --head -L http://www.wikipedia.org
 		   \_É esperado um 502
 
-Isso porque configuramos que o trafego de saída do Istio, tem que ser do tipo registry, e como ainda não configuramos nenhum registro tomamos um mavarilhoso 502 bem na cara =)
+Isso porque configuramos que o trafego de saída do Istio, tem que ser do tipo registry, e como ainda não 
+configuramos nenhum registro tomamos um mavarilhoso 502 bem na cara =)
 
 Vamos em frente e vamos criar nosso primeiro service_entry;
 \_vim service_entry.yaml
@@ -177,11 +185,25 @@ Deixe rolando em um terminal os logs do istio-egressgateway;
 \_kubectl logs -f -n istio-system istio-egressgateway-iddopod
   \_Abra outro terminal entre no pod de test;
     \_kubectl exec -ti test /bin/bash
-      \_Faça uma chamada para o wikipedia com o curl, você vai receber um 200, isso porque você está saindo sem passar pelo service_entries
+      \_Faça uma chamada para o wikipedia com o curl, você vai receber um 200, isso porque você está saindo 
+        sem passar pelo service_entries
         \_curl --head -L http://www.wikipedia.org
 	  \_Observe no outro terminal os logs da chamada =)
 
-OBS; Pensar se vale a pena adicionar um exemplo de comentar a entrada de mesh no arquivo do istio e mostrar que apoós aplicar isso o mesmo processo não mostra chamadas
+OBS; Pensar se vale a pena adicionar um exemplo de comentar a entrada de mesh no arquivo do istio e mostrar 
+     que após aplicar isso o mesmo processo não mostra chamadas (sim para o treinamento vale sim)
 
 Isso tudo sobre services entries, espero que você esteja acompanhando e entendo tudo.
 Vamos em frente e agora vamos falar sobre Mirrorin, limpe o lab e passe o proximo passo.
+
+Limpando o lab;
+\_kubectl delete pod test
+\_kubectl delete -f destination_rule.yaml
+\_kubectl delete -f egress_gateway.yaml
+\_kubectl delete -f service_entry.yaml
+\_kubectl delete -f vs.yaml
+\_kubectl delete ns istio-system
+\_istioctl uninstall --purge -y
+\_kubectl label namespace default istio-injection-
+
+
