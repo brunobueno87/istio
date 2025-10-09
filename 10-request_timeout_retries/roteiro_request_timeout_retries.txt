@@ -45,8 +45,8 @@ Agora vamos rodar algumas chamadas de curl para teste;
 \_kubectl exec -ti test -- curl http://httpbin:8000/delay/1
   \_Faça algumas chamadas assim e veja que vai responder normalmente......depois rodo o comando abaixo;
     \_kubectl exec -ti test -- curl http://httpbin:8000/delay/2
-      \_Agora é espera a saida => upstream request timeout
-        \_Show né ? Boua, agora vamos em frente e vamos teste config de retrie.
+      \_Agora é esperado a saida => upstream request timeout
+        \_Show né ? Boua, agora vamos em frente e vamos teste config de retries.
 
 Vamos começar removendo o atual vs;
 \_kubectl delete vs httpbin-vs
@@ -86,4 +86,7 @@ Observer o comportamento do log nas duas chamadas e veja o retrie acontecendo.
 
 Show agora vamos, para um novo tópico - Securing Workloads, nos vemos lá mermão, forte abraço !!! 
 
-
+Limpado o lab;
+\_kubectl delete -f vs.yaml
+\_kubectl delete -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/httpbin/httpbin.yaml
+\_kubectl delete pod test
