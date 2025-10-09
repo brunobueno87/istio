@@ -1,6 +1,7 @@
 Fault Injection
 
-Como o próprio nome já diz, nada mais é que injetar falhas nos serviços do Istio para ver como as apps se comportam. Muito util para testar problemas antes que eles venham de fato acontecer.
+Como o próprio nome já diz, nada mais é que injetar falhas nos serviços do Istio para ver como as apps se 
+comportam. Muito util para testar problemas antes que eles venham de fato acontecer.
 
 Beneficios de se usar fault injection;
 \_Testing how the app handles failure
@@ -9,7 +10,8 @@ Beneficios de se usar fault injection;
 \_Detecting weak spots
 \_Practicing Chaos Engennering
 
-Um ponto de observação é que o fault inject é configurado no VirtualService não tem seu próprio objeto como o vs ou o dr.
+Um ponto de observação é que o fault inject é configurado no VirtualService não tem seu próprio objeto como o 
+virtual service ou o destination rule.
 
 Então, vambora de Hands-on que é a parte divertida da história =D
 
@@ -65,7 +67,8 @@ Boua, agora vamos rodar novamente o curl do pod de test e veja que agora as cham
    \_Faça varias chamadas......Estando tudo certo, vamos em frente
 
 
-Show, agora vamos mudar a config para abort, modifique o seu virtual service, para que ele fique da seguinte forma;
+Show, agora vamos mudar a config para abort, modifique o seu virtual service, para que ele fique da seguinte 
+forma;
 \_vim vs.yaml
 
 apiVersion: networking.istio.io/v1alpha3
@@ -91,7 +94,7 @@ Aplique;
 \_kubectl apply -f vs.yaml
    \_Agora rode novamente o curl e veja que vai ser um retorno 500
      \_kubectl exec -ti test -- curl --head http://helloworld:5000/hello
-       \_É eaperado algo parecido com;
+       \_É esperado algo parecido com;
 
 HTTP/1.1 500 Internal Server Error
 content-length: 18
@@ -238,7 +241,11 @@ server: envoy
 
 ---
 
-Show e isso é tudo para o nosso lab de fault-injection. Limpe o lab e bora para o proximo tópico que será o Reques Timeouts & Retries
+Show e isso é tudo para o nosso lab de fault-injection. Limpe o lab e bora para o proximo tópico que será o 
+Reques Timeouts & Retries
 
-
+Limpando o lab;
+\_kubectl delete -f vs.yaml
+\_kubectl delete pod test
+\_kubectl delete deployments.apps helloworld-v1 helloworld-v2
 

@@ -163,3 +163,4 @@ Limpando o lab;
 \_kubectl delete -f dr.yaml
 \_kubectl delete -f echo_deployment.yaml
 \_kubectl delete -f vs.yaml
+\_kubectl delete deployments.apps fortio-deploy 
