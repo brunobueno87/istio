@@ -51,7 +51,7 @@ namespace default;
 \_istioctl analyze -n default
    \_Esse comando vai te mostrar que o namespace não esta com o istio instalado e qual comando você precisa 
      utilizar para injetar o istio no seu namespace;
-     \_kubectl label namespace default istio-injection=enable
+     \_kubectl label namespace default istio-injection=enabled
        \_Pós esse comando rode um analyze novamente e veja que o warning mudou
 
 Bom agora você precisa ou deletar e entregar novamente ou fazer um restart dos deployments do namespace 

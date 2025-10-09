@@ -1,14 +1,21 @@
 Mirroring
 
-Antes de falarmos sobre mirroring, vamos dar uma relembrada em releases. Canary Releases é o processo de introduzir uma nova versão de sua aplicação e redirecionar 1 pequeno pedaço de usuarios, para essa nova versão e vai fazendo o rollout de forma progressiva.
-Temos também o Blue/Green release quenada mais é que fazer a mudança de forma mais abrupta, chaveando 100% do trafego para a versão nova.
-Bom temos 2 versões aqui de release bem interessantes, porém ou  utilizamos 1 abordagem ou utilizamos outra. E então vamos dar uma olhada mais de perto no mirroring. O istio oferece essa versão de deploy, com esse tipo de release o istio envia uma cópia do tráfego ao vivo para ambos os ambientes de produção e de teste.
-Para utilizar esse tipo de release vamos precisar de uma combinação de virtual-service e uma destination rule para espelhar o tráfego.
-Bom sendo assim vamos em frente e bora de Hands-on para animar =D
+Antes de falarmos sobre mirroring, vamos dar uma relembrada em releases. Canary Releases é o processo de 
+introduzir uma nova versão de sua aplicação e redirecionar 1 pequeno pedaço de usuarios, para essa nova versão
+e vai fazendo o rollout de forma progressiva.
+Temos também o Blue/Green release que nada mais é que fazer a mudança de forma mais abrupta, chaveando 100% 
+do trafego para a versão nova.
+Bom temos 2 versões aqui de release bem interessantes, porém ou utilizamos 1 abordagem ou utilizamos outra. 
+E então vamos dar uma olhada mais de perto no mirroring. O istio oferece essa versão de deploy, com esse tipo 
+de release o istio envia uma cópia do tráfego ao vivo para ambos os ambientes de produção e de teste.
+Para utilizar esse tipo de release vamos precisar de uma combinação de virtual-service e uma destination rule
+para espelhar o tráfego. Bom sendo assim vamos em frente e bora de Hands-on para animar =D
+OBS; Se você vem seguindo o lab passo a passo provavelmente nesse ponto você esta sem o seu istio no cluster
+Então providencie a instalação antes de seguir em frente.
 
 Vamos começar verificando o cluster;
 \_kubectl get ns --show-labels
-  \_Estando tudo certo vamos começar criando 1 aplicação
+  \_Estando tudo certo vamos começar criando 1 aplicação, obviamente se não estiver ajuste.
     \_vim echo_deployment.yaml
 
 apiVersion: apps/v1
@@ -139,8 +146,15 @@ Boa agora vamos subir um pod de test e fazer chamadas a app echo;
 	    \_curl -s http://echo-server | grep -o '"HOSTNAME":"[^"]*"' | sed 's/"HOSTNAME":"\(.*\)"/HOSTNAME: \1/'
 	    \_Se quiser pode usar a chamada simples tbm porem ela é muito verborragica => curl -s http://echo-server
 
-Abra mais dois terminais e verifique os logs dos pods  echo-v1 e echo-v2, faça varias chamadas de curl do pod de test e veja que apnas o v1 retorna resposta, porem o v2 recebe as mesmas requests;
+Abra mais dois terminais e verifique os logs dos pods  echo-v1 e echo-v2, faça varias chamadas de curl do pod 
+de test e veja que apenas o v1 retorna resposta, porem o v2 recebe as mesmas requests;
 \_kubectl logs echo-server-v1-6fdd96d4c9-scp5f -f
 \_kubectl logs echo-server-v2-56494b9bd4-226px -f
 
-Show heim.....e é assim que você configura o seu mirroring, vamos em frente e vamos ver agora o Circuit Breakers
+Show heim... e é assim que você configura o seu mirroring, vamos em frente e vamos ver agora o Circuit Breakers
+
+Limpando o lab;
+\_kubectl delete pod test
+\_kubectl delete -f echo_deployment.yaml
+\_kubectl delete -f vs.yaml
+\_kubectl delete -f dr.yaml

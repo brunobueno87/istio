@@ -1,14 +1,18 @@
 Circuit Breakers
 
-Um circuit breaker eistio é similar a um circuit breaker de uma rede elétrica, mas ao invez de cortar a energia ele vai controlar tráfego de rede entre os serviços.
+Um circuit breaker no istio é similar a um circuit breaker de uma rede elétrica, mas ao invez de cortar a 
+energia ele vai controlar tráfego de rede entre os serviços.
 
-O circuit breaking ajuda a proteger os outros serviços de serrem afetados ou sobrecarregados por ele.
+O circuit breaking ajuda a proteger os outros serviços de serem afetados ou sobrecarregados por ele.
 Exemplo, imagine que a app-a, chame a app-b que por sua vez chama um Banco de dados.
 
 app-a ==> app-b ==> DB
 
-Porém o Banco de daods  começou a ficar lento, e mesmo assim os usuários continuam chamando a app-a, que por sua vez chama a app-b que continua a metralhar o banco, logo o banco vai parar de responder, o que vai derrubar  o sistema como um todo. Para evitar isso adicionamos um circuit breaker, para que quando o Banco de dados comece a ficar lento na suas respostas, a app-b não força mais chamadas ela da algum retorno para app-a, algo como algum (500, alguma coisa assim)
-O circuit breaker é configurado no Destination rule.
+Porém o Banco de dados começou a ficar lento, e mesmo assim os usuários continuam chamando a app-a, que por 
+sua vez chama a app-b que continua a metralhar o banco, logo o banco vai parar de responder, o que vai 
+derrubar o sistema como um todo. Para evitar isso adicionamos um circuit breaker, para que quando o Banco de 
+dados comece a ficar lento na suas respostas, a app-b não força mais chamadas ela da algum retorno para app-a,
+algo como algum (500, alguma coisa assim). Ponto de observação é que o circuit breaker é configurado no Destination rule.
 
 Show agora como sempre, chega de história triste e vamos para o Hands-on...
 
@@ -146,6 +150,16 @@ Response Body/Total Sizes : count 20 avg 1771.85 +/- 1438 min 153 max 3073 sum 3
 All done 20 calls (plus 0 warmup) 9.009 ms avg, 184.9 qps
 
 
-Show isso é tudo para o nosso lab de exemplo de circuit breaker, evidente que isso é apenas um exemplo no mundo real o ideal seria ao receber 500 dar uma resposta amigavel para o seu cliente como por exemplo, "produto não encontrado" ou "produto indisponivel no momento, podendo até adicionar um tracking solicitando que o usuário insira algum email para notificação quando o produto estiver disponível" para fins didaticos ver essas respostas 200 e 500 valida o funcionamento do circuit breaker, porém esteja atento para lidar com os erro da familia "500" no mundo real.
+Show isso é tudo para o nosso lab de exemplo de circuit breaker, evidente que isso é apenas um exemplo no 
+mundo real o ideal seria ao receber 500 dar uma resposta amigavel para o seu cliente como por exemplo, 
+"produto não encontrado" ou "produto indisponivel no momento, podendo até adicionar um tracking solicitando 
+que o usuário insira algum email para notificação quando o produto estiver disponível" para fins didaticos ver
+essas respostas 200 e 500 valida o funcionamento do circuit breaker, porém esteja atento para lidar com os 
+erro da familia "500" no mundo real.
 
-Show, limpe o lab e bora para o proximo tópico que é, Fault Injection. =D Nos vemos lá, forte abraço.
+Show, limpe o lab e bora para o próximo tópico que é, Fault Injection. =D Nos vemos lá, forte abraço.
+
+Limpando o lab;
+\_kubectl delete -f dr.yaml
+\_kubectl delete -f echo_deployment.yaml
+\_kubectl delete -f vs.yaml
