@@ -10,14 +10,15 @@ O que veremos ?
 \_7. Emphasizing the importance of security for the exam preparation.
 \_8. Beginning with a focus on understanting authorization fundamentals.
 
-Agora vamos falar de um cnceito "Zero Trust".
+Agora vamos falar de um conceito chamado "Zero Trust".
 É meio que auto explicativo, que basicamente significa nunca confie, sempre verifique. Por exemplo;
 \_Você confia nesse ip ?
 \_Você confia nessa app ?
 \_Você confia nessa identidade ?
 \_E por ai vai.....
 
-O istio faz isso implementando Mtls para toda comunicação um ponto importante para se observar é que o istio não impõe o Zero Trust por padrão você precisa configurar isso.
+O istio faz isso implementando MTLS para toda comunicação um ponto importante para se observar é que o Istio não impõe o Zero 
+Trust por padrão você precisa configurar isso.
 E você faz isso configurando o Peer Authentication, que podem ser restritivos ou permissivos.
 
 E por que usar Peer Authentication ?
@@ -27,13 +28,13 @@ E por que usar Peer Authentication ?
 \_Protects services
 \_Services identity verification
 
-Boa, agora vc já sabe né ? É hora de Hands-on maravilho......
+Boa, agora vc já sabe né ? É hora de Hands-on maravilhoso......
 
 Como sempre comece verificando as labels;
 \_kubectl get ns --show-labels
 
 Entregue a app HelloWorld;
-\_kubectl apply -f https://rwa.githubusercontent.com/istio/istio/refs/heads/master/samples/helloworld/helloworld.yaml
+\_kubectl apply -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/helloworld/helloworld.yaml
   \_Verifique;
      \_kubectl get pods
 
@@ -44,7 +45,7 @@ Estando tudo certo vamos em frente e vamos criar um novo namespace;
       \_Verifique;
         \_kubectl -n test get pod
 
-Agora rode uma chamada curl do od de test para o helloworld;
+Agora rode uma chamada curl do pod de test para o helloworld;
 \_kubectl exec -ti -n test test -- curl http://helloworld.default.svc:5000/hello
   \_É esperado um => Hello version: v2, instance: helloworld-v2-779454bb5f-ggcn2
     \_Recebemos um 200 porque por padrão a comunicação é aberta no istio
@@ -72,7 +73,8 @@ Boua, agora repita o curl de teste e veja que vc vai receber um Deny;
 curl: (56) Recv failure: Connection reset by peer
 command terminated with exit code 56
 
-Show, agora vamos fazer o seguinte, vamos remover o pod de teste, rotular o namespace com o istio, deployar novamente o pod de test e depois do pod up vamos fazer uma chamada de test curl novamente;
+Show, agora vamos fazer o seguinte, vamos remover o pod de teste, rotular o namespace com o istio, deployar novamente o pod de
+test e depois do pod up vamos fazer uma chamada de test curl novamente;
 \_kubectl -n test delete pod test
   \_kubectl label namespace test istio-injection=enabled
     \_kubectl run test --image=nginx -n test
@@ -141,6 +143,14 @@ Agora faça uma nova chamada curl;
   \_É esperado um 200 aqui;
     \_Rode um novo curl porem agora aponte para  app productpage;
       \_kubectl exec -ti -n app test -- curl --head http://productpage.default.svc:9080
-        \_É esperado um => Recv failure: Connection reset by peer
+        \_É esperado um => Recv failure: Connection reset by peer, isso porque a liberação que fizemos é especifica para a app helloworld
+
 
 Boa isso por enquanto sobre peer authentication, vamos ver agora sobre Authorization =)
+
+Limpando o lab;
+\_kubectl delete -f https://raw.githubusercontent.com/istio/istio/release-1.11/samples/bookinfo/platform/kube/bookinfo.yaml
+\_kubectl delete -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/helloworld/helloworld.yaml
+\_kubectl get pod
+\_kubectl get ns
+\_kubectl delete ns app test
