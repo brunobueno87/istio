@@ -1,8 +1,11 @@
 Authorization
 
-simplesmente define que pode ser feito em termos de request no workload do istio, por exemplo, qual workload pode ou não fazer um POST, ou um GET, quando necessário controlar isso entre os namespaces.
+Simplesmente define o que pode ser feito em termos de request no workload do istio, por exemplo, qual workload pode ou não fazer
+um POST, ou um GET, quando necessário controlar isso entre os namespaces.
 
 Bom vamos de Hands-on que é pra alegrar o dia;
+(Mais uma vez estou partindo do principio que você esta com o cluster de k8s "limpo" e com o istio instalado e com o namespace 
+default com istio injetado)
 
 Verifique o lab;
 \_kubectl get ns --show-labels
@@ -13,7 +16,7 @@ Show, estando tudo certo entregue a app httpbin no namespace default;
   \_Verifique;
     \_kubectl get pods
 
-Caso não exita crie um namespace com o nome test e entregue uma app de test nesse namespace.
+Caso não exista crie um namespace com o nome test e entregue uma app de test nesse namespace.
 
 Rode um curl do pod de test apontando para o httpbin;
 \_kubectl exec -ti -n test test -- curl --head http://httpbin.default.svc:8000

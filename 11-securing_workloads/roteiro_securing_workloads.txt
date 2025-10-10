@@ -154,3 +154,5 @@ Limpando o lab;
 \_kubectl get pod
 \_kubectl get ns
 \_kubectl delete ns app test
+\_kubectl delete -f peer_auth_default.yaml
+\_kubectl delete -f peer_auth_global.yaml
