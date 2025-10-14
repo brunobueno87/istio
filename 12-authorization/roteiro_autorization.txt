@@ -16,7 +16,7 @@ Show, estando tudo certo entregue a app httpbin no namespace default;
   \_Verifique;
     \_kubectl get pods
 
-Caso não exista crie um namespace com o nome test e entregue uma app de test nesse namespace.
+Caso não exista crie um namespace com o nome test, injete o istio e entregue uma app de test nesse namespace.
 
 Rode um curl do pod de test apontando para o httpbin;
 \_kubectl exec -ti -n test test -- curl --head http://httpbin.default.svc:8000
@@ -96,8 +96,8 @@ spec:
 	        \_ kubectl exec -ti -n test test -- curl --head http://httpbin.default.svc:8000
 		  \_Veja que agora retorna um 200
 
-Caso seu lab não tenha, crie um namespace com o nome app e injete o istio nele, também faça a entrega de um pod de test.
-(Sim não sem sequencias de comandos aqui até esse momento já fizemos isso em outros labs ....)
+Caso seu lab não tenha, crie um namespace com o nome app e injete o istio nele, também faça a entrega de um pod 
+de test (Sim não tem sequencias de comandos aqui até esse momento já fizemos isso em outros labs ....)
 
 Show, estando tudo certo rode uma chamada curl de dentro do pod de test para a app httpbin;
 \_kubectl exec -ti test -n app -- curl --head httpbin.default.svc:8000
