@@ -1,11 +1,10 @@
 Authorization
 
-Simplesmente define o que pode ser feito em termos de request no workload do istio, por exemplo, qual workload pode ou não fazer
-um POST, ou um GET, quando necessário controlar isso entre os namespaces.
+Simplesmente define o que pode ser feito em termos de request no workload do istio, por exemplo, qual 
+workload pode ou não fazer um POST, ou um GET, quando necessário controlar isso entre os namespaces.
 
 Bom vamos de Hands-on que é pra alegrar o dia;
-(Mais uma vez estou partindo do principio que você esta com o cluster de k8s "limpo" e com o istio instalado e com o namespace 
-default com istio injetado)
+(Mais uma vez estou partindo do principio que você esta com o cluster de k8s "limpo" e com o istio instalado e com o namespace default com istio injetado)
 
 Verifique o lab;
 \_kubectl get ns --show-labels
@@ -96,8 +95,8 @@ spec:
 	        \_ kubectl exec -ti -n test test -- curl --head http://httpbin.default.svc:8000
 		  \_Veja que agora retorna um 200
 
-Caso seu lab não tenha, crie um namespace com o nome app e injete o istio nele, também faça a entrega de um pod 
-de test (Sim não tem sequencias de comandos aqui até esse momento já fizemos isso em outros labs ....)
+Caso seu lab não tenha, crie um namespace com o nome app e injete o istio nele, também faça a entrega de um pod
+de test (Sim, não tem sequencias de comandos aqui até esse momento já fizemos isso em outros labs ....)
 
 Show, estando tudo certo rode uma chamada curl de dentro do pod de test para a app httpbin;
 \_kubectl exec -ti test -n app -- curl --head httpbin.default.svc:8000
@@ -206,7 +205,8 @@ Show agora rode a app bookinfo;
     \_kubectl get pod
       \_Aguaede todos os pods ficarem 2/2
 
-Um ponto de observação é, sempre tome cuidado com politicas de DENY e ALLOW no istio porque por padrão as policys de DENY sempre vencem. Isso posto, vamos fazer uma policy que negue tudo;
+Um ponto de observação é, sempre tome cuidado com politicas de DENY e ALLOW no istio porque por padrão as 
+policys de DENY sempre vencem. Isso posto, vamos fazer uma policy que negue tudo;
 \_vim auth_deny_all.yaml
 
 apiVersion: security.istio.io/v1beta1
@@ -257,7 +257,17 @@ Aplique;
          \_kubectl exec -ti test -n app -- curl --head http://httpbin.default.svc:8000/get
 	   \_Show né ? =D
 
-Boua, e isso é tudo por enquanto para o nosso lab de Authorization, vamos em frente e agora vamos falar de outro tema importante, que é Workload Entry.
+Boua, e isso é tudo por enquanto para o nosso lab de Authorization, vamos em frente e agora vamos falar de 
+outro tema importante, que é Workload Entry.
 Então "limpe" o lab e sigua em frente.
+
+Limpando o lab;
+\_kubectl delete -f auth_deny_product.yaml
+\_kubectl delete -f auth_policy.yaml
+\_kubectl delete -f auth_policy_deny.yaml
+\_kubectl delete -f peer_auth_global.yaml
+\_kubectl -n default delete deploy details-v1 httpbin productpage-v1 ratings-v1 reviews-v1 reviews-v2 reviews-v3
+\_kubectl -n test delete pod test
+\_kubectl -n app delete pod test
 
 
