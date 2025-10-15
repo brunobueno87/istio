@@ -1,27 +1,23 @@
 Workload Entry
 
-O workload entry é uma maneira de registrar um serviço externo dentro do mesh, é de maneira analoga o inverso do service entry, que registra um endpoint externo dentro do cluster.
-E é sempre bom ter em mente que o workload entry, depende de um service entry.
+O workload entry é uma maneira de registrar um serviço externo dentro do mesh, é de maneira analoga o inverso
+do service entry, que registra um endpoint externo dentro do cluster. E é sempre bom ter em mente que o 
+ workload entry, depende de um service entry.
 
-Show vambora para o Hands-on =)
+Show ? Então vambora para o Hands-on =)
 
-Fique ligado pois vamos instalar o istio estou partindo do principio que é um cluster de k8s "limpo".
-Ajuste o arquivo de configuração de instalação do istio;
-\_vim demo.yaml
+Rode o comando abaixo para que o altere a config do Istio para que ele rode no modo REGISTRY_ONLY
+Ou rode o comando;
+\_istioctl install --set profile=demo --set meshConfig.outboundTrafficPolicy.mode=REGISTRY_ONLY
 
-...
-  meshConfig:
-    outboundTrafficPolicy:
-      mode: REGISTRY_ONLY
-...
-
-Valide a configuração;
-\_istioctl validate -f demo.yaml
-  \_Estando tudo ok, instale;
-    \_istioctl install -f demo.yaml
-
+Verifique a instalação;
+\_kubectl get configmap istio -n istio-system -o yaml
+  \_Procure pela linha;
+     outboundTrafficPolicy:
+     mode: REGISTRY_ONLY
 
 Agora suba um nginx externo ao cluster de k8s.
+
 Pós isso suba um pod do nginx de test;
 \_kubectl run test --image=nginx
   \_Agora rode um curl apontando para o nginx externo;
@@ -78,7 +74,14 @@ Show, agora vamos fazer uma brincadeira, vamos subir um pod e vamos carregar ele
   \_Agora vamos entrar dentro desse novo pod;
     \_kubectl exec -ti nginx -- /bin/bash
       \_echo "This is an nginx pod" > /usr/share/nginx/html/index.html
-        \_kubectl exec -ti test -- curl http://app.internal.com
-           \_Repita as chamadas e veja que vai intercalar entre o externo e interno
+        \_curl localhost
+          \_kubectl exec -ti test -- curl http://app.internal.com
+            \_Repita as chamadas e veja que vai intercalar entre o externo e interno
 
-E isso é tudo para o nosso lab de workload entry, agora avance para problemas comuns e até o momento em que esse texto foi escrito isso é tudo para a prova ICA
+E isso é tudo para o nosso lab de workload entry, agora avance para problemas comuns e até o momento em que 
+esse texto foi escrito isso é tudo para a prova ICA.
+
+Limpando o lab;
+\_kubectl delete -f se.yaml
+\_kubectl delete -f we.yaml
+\_kubectl -n default delete pod nginx test
