@@ -3,17 +3,22 @@ summarize for ICA
 1. What is the purpose of the istioctl proxy-status command ?
 \_To view the synchronization status of Envoy proxies with istiod.
 
-Tips; Read all options of the answers, because some questions have a options (All other options are correct) and in some moments that is a correct option.
+Tips; Read all options of the answers, because some questions have a options (All other options are correct) and in some 
+moments that is a correct option.
 
-2. What is a recommended practice for managing Istio configurations acrros múltiple namespaces ?
+2. What is a recommended practice for managing Istio configurations acros múltiple namespaces ?
 \_Use the exportTo field to control the visibility of resources across namespaces.
-   \_OBs; The export field allow you to specify which namespaces can access a particular resource, providing finegrained control over configuration visibility. this practice helps in managing configurations efficientrly accross multiple namespaces.
+   \_OBS; The export field allow you to specify which namespaces can access a particular resource, providing finegrained 
+          control over configuration visibility. this practice helps in managing configurations efficiently accross multiple 
+	  namespaces.
 
 3. Which command in Istio is used to analyze potential issues in your configuration, either in a live cluster or local files ?
 \_istioctl analyze
-  \_The istioctl analyze command is a diagnostic tool that detect potential issues in your Istio configuration. It can analyze live clusters, local configuration files, or a combination of both to identify problems before they affect deployment.
+  \_The istioctl analyze command is a diagnostic tool that detect potential issues in your Istio configuration. It can analyze 
+    live clusters, local configuration files, or a combination of both to identify problems before they affect deployment.
 
 4. What is the recommended approach for deploying Istio in a multi-cluster environment ?
 \_Deploy istio in a single cluster and use cross-cluster communication.
-  \_Deploying Istiois a single cluster and using cross-cluster communication simplifies management and ensures consistent policy enforcement across cluster. This approach reduces complexity and operational overhead.
+  \_Deploying Istio is a single cluster and using cross-cluster communication simplifies management and ensures consistent 
+    policy enforcement across cluster. This approach reduces complexity and operational overhead.
 
