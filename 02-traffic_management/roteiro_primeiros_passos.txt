@@ -1,3 +1,5 @@
+Traffic management
+
 Vamos começar ententendo o trafico no cluster com o mesh habilitado.
 Então nosso objetivo aqui será, primeiro subir uma aplicação demo no
 name space default com o istio injetado nesse namaspace.
@@ -57,7 +59,7 @@ NAME   READY   STATUS             RESTARTS   AGE
 test   1/1     Running   0          15m
 
 Show, agora vamos ver se existe services no namespace default;
-\_ kubectl get svc -n default 
+\_kubectl get svc -n default
 NAME          TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
 details       ClusterIP   10.97.186.111    <none>        9080/TCP   42m
 kubernetes    ClusterIP   10.96.0.1        <none>        443/TCP    18d
@@ -85,7 +87,7 @@ Rode o comando;
 apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
-  name: dafault
+  name: default
   namespace: default
 spec:
   mtls:
@@ -185,7 +187,7 @@ server: envoy
 date: Thu, 31 Jul 2025 20:50:39 GMT
 x-envoy-upstream-service-time: 21
 
-É isso por enquanto é só, isso foi para termos nosso primeiro contato com o gerenciamento de trafego começar a entender a comunicação no cluster quando utilizamos o istio.
+É isso por enquanto, isso foi para termos nosso primeiro contato com o gerenciamento de trafego começar a entender a comunicação no cluster quando utilizamos o istio.
 
 Vamos em frente e agora, vamos começar a entender  Virtual Services, vá para o diretório do Virtual Service e continue aprendendo. 
 

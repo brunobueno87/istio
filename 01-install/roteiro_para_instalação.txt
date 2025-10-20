@@ -131,7 +131,7 @@ Comando para instalar aplicação demo;
 \_kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.11/samples/bookinfo/platform/kube/bookinfo.yaml
 
 Comando para baixar o Istio;
-\_curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.18.2 sh -
+\_curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.26.3 sh -
 
 Comando para "configurar" istioctl;
 \_export PATH=$PWD/bin:$PATH
@@ -140,7 +140,7 @@ Comando para "configurar" istioctl;
 Comando para instalar o Istio no cluster;
 \_istioctl install --set profile=demo -y
 
-Comando para verificar se tem o istio habilidato em algum name-space;
+Comando para verificar se tem o istio habilidato em algum namespace;
 \_istioctl analyze -n default
 
 Comando para habilitar o Istio em um name-space;
@@ -157,6 +157,12 @@ Vamos verificar se o Istio esta de fato habilitado no name-space verifcando as l
 Agora com o name space limpo vamos instalar novamente a app de demo;
 \_kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.11/samples/bookinfo/platform/kube/bookinfo.yaml
 
+Agora rode um get podd;
+\_kubectl get pods 
+  \_veja a diferença que os pods agora estão 2/2
+
 ## EXTRA ## - Comando para injetar o proxy;
 \_istioctl kube-inject -f pod.yaml | kubectl apply -f
 
+Limpando o lab;
+\_kubectl delete -f https://raw.githubusercontent.com/istio/istio/release-1.11/samples/bookinfo/platform/kube/bookinfo.yaml
