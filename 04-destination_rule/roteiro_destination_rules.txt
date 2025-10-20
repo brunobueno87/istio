@@ -16,7 +16,7 @@ Boa, vamos começar verificando as labels dos dos namespaces do cluster;
 Injete o istio, no namespace default;
 \_kubectl label namespace default istio-injection=enabled
 
-Agora que o namespace default esta com o itios injetado vamos em frente e entregar a app Helloworld, 
+Agora que o namespace default esta com o istio injetado vamos em frente e entregar a app Helloworld, 
 para isso rode o comando;
 \_kubectl apply -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/helloworld/helloworld.yaml
    \_É esperado algo parecido com;
@@ -165,8 +165,7 @@ Volte mais uma vez pra o pod de test e rode varias chamadas curl para a app hell
   \_curl helloworld.default.svc:5000/hello
 
 Show, com isso finalizamos um exemplo pratico de Destination Rules.
-Espero que tenha ficado claro e didatico e que você tenha conseguido replicar com sucesso.....agora vamos em frente e vamos falar
-de Gateways.
+Espero que tenha ficado claro e didatico e que você tenha conseguido replicar com sucesso.....agora vamos em frente e vamos falar de Gateways.
 
 Limpando o lab;
 \_kubectl delete -f ds.yaml
