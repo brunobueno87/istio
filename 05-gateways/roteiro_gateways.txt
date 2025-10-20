@@ -113,7 +113,7 @@ spec:
 Aplique;
 \_kubectl apply -f gw.yaml
   Verifique;
-  \_kubectl get gateways.networking.istio.io
+  \_kubectl get gateways.networking.istio.io -n istio-system
 
 Boa, no nosso lab vamos usar um nodeport apenas para fins didaticos. Verifique o seu namespace istio-system;
 \_kubectl get svc -n istio-system
