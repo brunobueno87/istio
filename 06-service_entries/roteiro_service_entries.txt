@@ -223,4 +223,5 @@ Agora rode um pod de teste;
    Agora rode um curl do pod de test apontando para o myapp.com
    \_kubectl exec test -- curl myapp.com
 
-
+Limpando o lab;
+\_kubectl delete pod test
