@@ -17,9 +17,9 @@ Agora vamos falar de um conceito chamado "Zero Trust".
 \_Você confia nessa identidade ?
 \_E por ai vai.....
 
-O istio faz isso implementando MTLS para toda comunicação um ponto importante para se observar é que o Istio não impõe o Zero 
-Trust por padrão você precisa configurar isso.
-E você faz isso configurando o Peer Authentication, que podem ser restritivos ou permissivos.
+O istio faz isso implementando MTLS para toda comunicação um ponto importante para se observar é que o Istio 
+não impõe o Zero Trust por padrão você precisa configurar isso. E você faz isso configurando o Peer 
+Authentication, que podem ser restritivos ou permissivos.
 
 E por que usar Peer Authentication ?
 \_Zero-Trust principles
@@ -34,7 +34,7 @@ Como sempre comece verificando as labels;
 \_kubectl get ns --show-labels
 
 Entregue a app HelloWorld;
-\_kubectl apply -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/helloworld/helloworld.yaml
+\_kubectl apply -f ~/istio/samples/helloworld/helloworld.yaml
   \_Verifique;
      \_kubectl get pods
 
