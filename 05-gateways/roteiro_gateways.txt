@@ -171,5 +171,7 @@ Limpando o lab;
 \_kubectl delete -f gw.yaml
 \_kubectl delete -f vs.yaml
 \_kubectl delete -f https://raw.githubusercontent.com/istio/istio/release-1.11/samples/bookinfo/platform/kube/bookinfo.yaml
-
+\_istioctl uninstall --purge -y
+\_kubectl delete ns istio-system
+\_kubectl label namespace default istio-injection-
 

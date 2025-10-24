@@ -21,8 +21,9 @@ Remumo do Fluxo;
 
 E agora já sabe.... Vambora de Hands-on =)
 
-Boa, como sempre seguimos o principio que o cluster esta "limpo".
-Então vamos fazer um dump e instalar o istio com a modificação que necessária 
+Boa, como sempre seguimos o principio que o cluster esta "limpo". (Para esse lab utilizaremos a versão 1.28 do Istio)
+Então vamos fazer um dump e instalar o istio com a modificação necessária;
+
 \_istioctl profile dump demo -o yaml > demo.yaml
   \_Edite o arquivo;
     \_vim demo.yaml
@@ -205,5 +206,21 @@ Limpando o lab;
 \_kubectl delete ns istio-system
 \_istioctl uninstall --purge -y
 \_kubectl label namespace default istio-injection-
+
+Agora vamos fazer na versão 1.26 para que tenhamos um lab o mais proximo possivel da prova.
+Se você rodar o comando;
+\_curl -i myapp.com
+  \_Vai ver que ele vai trazer um 200, essa entrada esta mapeada no meu /etc/hosts e aponta para um nginx que eu subi
+    no meu parque de maquinas aqui, simulando um web-service que poderia estar em algum EC2 por exemplo, a ideia aqui 
+    é apenas simular algo que esta externo ao mesh
+
+Agora instale o istio utilizando a versão 1.26.
+Aplique o service_entry_v2;
+\_kubectl apply -f service_entry_v2.yaml
+
+Agora rode um pod de teste;
+\_kubectl run test --image=nginx
+   Agora rode um curl do pod de test apontando para o myapp.com
+   \_kubectl exec test -- curl myapp.com
 
 
