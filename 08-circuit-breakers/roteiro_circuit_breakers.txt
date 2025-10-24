@@ -1,7 +1,7 @@
 Circuit Breakers
 
 Um circuit breaker no istio é similar a um circuit breaker de uma rede elétrica, mas ao invez de cortar a 
-energia ele vai controlar tráfego de rede entre os serviços.
+energia ele vai controlar o tráfego de rede entre os serviços.
 
 O circuit breaking ajuda a proteger os outros serviços de serem afetados ou sobrecarregados por ele.
 Exemplo, imagine que a app-a, chame a app-b que por sua vez chama um Banco de dados.
