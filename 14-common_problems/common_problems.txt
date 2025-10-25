@@ -7,7 +7,7 @@ Um outro comando que pode te ajudar bastante é o analyze;
    \_Este comando verifica se você não tiver o istio injetado no seu namespace, ele vai gerar o comando para você.
      \_kubectl label namespace test istio-injection=enabled
 
-Um outra dica importante é que, as coisas podem estar mal configuradas então sempre olhe porta do services para ver se esta 
+Uma outra dica importante é que, as coisas podem estar mal configuradas então sempre olhe porta do services para ver se esta 
 correta, espere para que algumas coisas se propagem entre os proxys. Gere dados o suficiente quando estiver certo de que a 
 config esta correta mas o resultado não corresponde.
 
