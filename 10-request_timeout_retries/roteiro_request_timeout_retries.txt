@@ -37,7 +37,7 @@ spec:
               number: 8000
 
 Aplique;
-\_kubectl appy-f vs.yaml
+\_kubectl apply -f vs.yaml
    \_Verifique;
       \_kubectl get vs
 
@@ -46,7 +46,7 @@ Agora vamos rodar algumas chamadas de curl para teste;
   \_Faça algumas chamadas assim e veja que vai responder normalmente......depois rodo o comando abaixo;
     \_kubectl exec -ti test -- curl http://httpbin:8000/delay/2
       \_Agora é esperado a saida => upstream request timeout
-        \_Show né ? Boua, agora vamos em frente e vamos teste config de retries.
+        \_Show né ? Boua, agora vamos em frente e vamos testar a config de retries.
 
 Vamos começar removendo o atual vs;
 \_kubectl delete vs httpbin-vs
@@ -88,5 +88,5 @@ Show agora vamos, para um novo tópico - Securing Workloads, nos vemos lá merm�
 
 Limpado o lab;
 \_kubectl delete -f vs.yaml
-\_kubectl delete -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/httpbin/httpbin.yaml
+\_kubectl delete -f ~/istio/samples/httpbin/httpbin.yaml
 \_kubectl delete pod test
