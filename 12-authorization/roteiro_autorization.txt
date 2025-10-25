@@ -4,7 +4,8 @@ Simplesmente define o que pode ser feito em termos de request no workload do ist
 workload pode ou não fazer um POST, ou um GET, quando necessário controlar isso entre os namespaces.
 
 Bom vamos de Hands-on que é pra alegrar o dia;
-(Mais uma vez estou partindo do principio que você esta com o cluster de k8s "limpo" e com o istio instalado e com o namespace default com istio injetado)
+(Mais uma vez estou partindo do principio que você esta com o cluster de k8s "limpo" e com o istio instalado 
+e com o namespace default com istio injetado)
 
 Verifique o lab;
 \_kubectl get ns --show-labels
@@ -97,10 +98,14 @@ spec:
 
 Caso seu lab não tenha, crie um namespace com o nome app e injete o istio nele, também faça a entrega de um pod
 de test (Sim, não tem sequencias de comandos aqui até esse momento já fizemos isso em outros labs ....)
+Brinks segue comandos;
+\_kubectl label namespaces app istio-injection=enabled
+\_kubectl run test --image=nginx -n app
+\_kubectl -n app get pod
 
 Show, estando tudo certo rode uma chamada curl de dentro do pod de test para a app httpbin;
 \_kubectl exec -ti test -n app -- curl --head httpbin.default.svc:8000
-  \_Aqui é esperado um 403, devido o fato de apenas o namespace test pode receber chamadas, Vamos ajustar isso adicionando o namespace app.
+  \_Aqui é esperado um 403, devido o fato de apenas o namespace test pode fazer chamadas, Vamos ajustar isso adicionando o namespace app.
     \_vim auth_policy.yaml
 
 apiVersion: security.istio.io/v1
