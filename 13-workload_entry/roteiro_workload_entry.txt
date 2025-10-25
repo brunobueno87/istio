@@ -2,7 +2,7 @@ Workload Entry
 
 O workload entry é uma maneira de registrar um serviço externo dentro do mesh, é de maneira analoga o inverso
 do service entry, que registra um endpoint externo dentro do cluster. E é sempre bom ter em mente que o 
- workload entry, depende de um service entry.
+workload entry, depende de um service entry.
 
 Show ? Então vambora para o Hands-on =)
 

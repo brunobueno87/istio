@@ -12,7 +12,7 @@ Verifique o lab;
    \_Confirme de o namespace default possui o istio injetado
 
 Show, estando tudo certo entregue a app httpbin no namespace default;
-\_kubectl apply -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/httpbin/httpbin.yaml
+\_kubectl apply -f ~/istio/samples/httpbin/httpbin.yaml
   \_Verifique;
     \_kubectl get pods
 
@@ -205,7 +205,7 @@ Aplique;
     \_kubectl exec -ti test -n test -- curl http://httpbin.default.svc:8000/get
 
 Show agora rode a app bookinfo;
-\_kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.11/samples/bookinfo/platform/kube/bookinfo.yaml
+\_kubectl apply -f ~/istio/samples/bookinfo/platform/kube/bookinfo.yaml
   \_Verifique;
     \_kubectl get pod
       \_Aguaede todos os pods ficarem 2/2
@@ -274,5 +274,3 @@ Limpando o lab;
 \_kubectl -n default delete deploy details-v1 httpbin productpage-v1 ratings-v1 reviews-v1 reviews-v2 reviews-v3
 \_kubectl -n test delete pod test
 \_kubectl -n app delete pod test
-
-
