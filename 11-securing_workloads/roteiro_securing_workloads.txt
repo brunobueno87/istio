@@ -73,8 +73,8 @@ Boua, agora repita o curl de teste e veja que vc vai receber um Deny;
 curl: (56) Recv failure: Connection reset by peer
 command terminated with exit code 56
 
-Show, agora vamos fazer o seguinte, vamos remover o pod de teste, rotular o namespace com o istio, deployar novamente o pod de
-test e depois do pod up vamos fazer uma chamada de test curl novamente;
+Show, agora vamos fazer o seguinte, vamos remover o pod de teste, rotular o namespace com o istio, deployar 
+novamente o pod de test e depois do pod up vamos fazer uma chamada de test curl novamente;
 \_kubectl -n test delete pod test
   \_kubectl label namespace test istio-injection=enabled
     \_kubectl run test --image=nginx -n test
@@ -95,7 +95,7 @@ spec:
     mode: PERMISSIVE
 
 Aplique;
-\_kubectl apply -f peer_auth_global.yaml
+\_kubectl apply -f peer_auth_default.yaml
 
 Boa agora que criamos um peer permissivo, vamos criar um novo namespace, não rotulado;
 \_kubectl create ns app
@@ -123,20 +123,6 @@ Show vamos em frente e agora vamos deployar a app bookinfo no namespace default;
 \_kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.11/samples/bookinfo/platform/kube/bookinfo.yaml
   \_Verifique e espere até que todos os pods estejam 2/2
      \_kubectl get pods
-apiVersion: security.istio.io/v1beta1
-kind: PeerAuthentication
-metadata:
-  name: default
-  namespace: default
-spec:
-  selector:
-    matchLabels:
-      app: helloworld
-  mtls:
-    mode: PERMISSIVE
-
-Aplique;
-\_kubectl apply -f peer_auth_default.yaml
 
 Agora faça uma nova chamada curl;
 \_kubectl exec -ti -n app test -- curl --head http://helloworld.default.svc:5000/hello
@@ -146,13 +132,13 @@ Agora faça uma nova chamada curl;
         \_É esperado um => Recv failure: Connection reset by peer, isso porque a liberação que fizemos é especifica para a app helloworld
 
 
-Boa isso por enquanto sobre peer authentication, vamos ver agora sobre Authorization =)
+Boa é isso por enquanto sobre peer authentication, vamos ver agora sobre Authorization =)
 
 Limpando o lab;
 \_kubectl delete -f https://raw.githubusercontent.com/istio/istio/release-1.11/samples/bookinfo/platform/kube/bookinfo.yaml
 \_kubectl delete -f https://raw.githubusercontent.com/istio/istio/refs/heads/master/samples/helloworld/helloworld.yaml
 \_kubectl get pod
-\_kubectl get ns
+\_kubectl get ns 
 \_kubectl delete ns app test
 \_kubectl delete -f peer_auth_default.yaml
 \_kubectl delete -f peer_auth_global.yaml
