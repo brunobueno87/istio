@@ -1,12 +1,12 @@
 Workload Entry
 
-O workload entry é uma maneira de registrar um serviço externo dentro do mesh, é de maneira analoga o inverso
-do service entry, que registra um endpoint externo dentro do cluster. E é sempre bom ter em mente que o 
-workload entry, depende de um service entry.
+O workload entry é uma maneira de registrar um serviço externo dentro do mesh, e de maneira analoga o inverso do service 
+entry, que registra um endpoint externo dentro do cluster. E é sempre bom ter em mente que o workload entry, depende de um 
+service entry.
 
 Show ? Então vambora para o Hands-on =)
 
-Rode o comando abaixo para que o altere a config do Istio para que ele rode no modo REGISTRY_ONLY
+Rode o comando abaixo para que altere a config do Istio para que ele rode no modo REGISTRY_ONLY
 Ou rode o comando;
 \_istioctl install --set profile=demo --set meshConfig.outboundTrafficPolicy.mode=REGISTRY_ONLY
 
@@ -61,6 +61,7 @@ spec:
   workloadSelector:
     labels:
       app: external
+
 Aplique;
 \_kubectl apply -f se.yaml
    \_Verifique;
@@ -78,8 +79,8 @@ Show, agora vamos fazer uma brincadeira, vamos subir um pod e vamos carregar ele
           \_kubectl exec -ti test -- curl http://app.internal.com
             \_Repita as chamadas e veja que vai intercalar entre o externo e interno
 
-E isso é tudo para o nosso lab de workload entry, agora avance para problemas comuns e até o momento em que 
-esse texto foi escrito isso é tudo para a prova ICA.
+E isso é tudo para o nosso lab de workload entry, agora avance para problemas comuns e até o momento em que esse texto foi escrito
+isso é tudo para a prova ICA.
 
 Limpando o lab;
 \_kubectl delete -f se.yaml
