@@ -20,15 +20,15 @@ certeza que o upgrade é compativel com seu ambiente. Sendo assim já vamos em f
   To get started, check out https://istio.io/latest/docs/setup/getting-started/
 
 OBS; Quando se usa upgrades baseado em revision você pode pular atravez de 2 minor versions é suportado 
-     (você pode atualizar diretamente da versão 1.15 para 1.17). Isto é um contraste comparado com upgrade 
+     (você pode atualizar diretamente da versão 1.26 para 1.27). Isto é um contraste comparado com upgrade 
       in-place, onde você tem que atualizar para a próxima versão sem a possibilidade de poder pular de versão.
 
 Control Plane
 
 Para instalar uma nova revisão chamada canary, você deve configurar o campo revision como mostrado a seguir;
 
-OBS; Em um ambiente produtivo uma melhor maneira/estratégia de nomes seria o nome estar alinhado com a 
-     versão correspondente, porem você deve subtituir . por - porque . não é um caracter permitido de ser 
+OBS; Em um ambiente produtivo uma melhor maneira/estratégia de nomes seria o nome estar alinhado com a
+     versão correspondente, porem você deve subtituir . por - porque . não é um caracter permitido de ser
      utilizado em nomes de revisions. Exemplo de nome, revision=1-27-1 para Istio 1.27.1
 
 Boa vamos em frente e agora vamos instalar uma revision canary no nosso cluster;
@@ -40,6 +40,8 @@ into the cluster. Proceed? (y/N) y
 ✔ Istiod installed
 ✔ Ingress gateways installed
 ✔ Installation complete
+
+OBS; Continue lendo mas só volte a fazer na pratica, quando chegar no revision stable labels
 
 Após instalar a revision canary, você ira ter dois control plane deployments e services rodando lado a lado;
 Verifique os controls planes;
@@ -101,11 +103,11 @@ nova revision. Todos os namespaces "labeleados" com aquela tag iram ser atualiza
 
 => Exemplo de Uso
 
-Considerando um cluster com 2 revisions instaladas, 1-26-1 e 1-27-1. O cluster operator cria uma revision tag prod-stable, 
-apontando para a "versão velha", estavel 1-26-1 version, e uma revision tag prod-canary apontando para a mais nova 1-27-1 
+Considerando um cluster com 2 revisions instaladas, 1-26-1 e 1-27-1. O cluster operator cria uma revision tag prod-stable,
+apontando para a "versão velha", estavel 1-26-1 version, e uma revision tag prod-canary apontando para a mais nova 1-27-1
 revision. Esse estado/nível de configuração pode ser alcançado seguindo esses comandos:
 
-OBS; Limper o lab deixando apenas o k8s puro.
+OBS; Limper o lab deixando apenas o k8s puro.***
 
 1. Instale duas revisions de control plane:
 \_istioctl install --revision=1-26-1 --set profile=minimal --skip-confirmation
