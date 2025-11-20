@@ -1,13 +1,13 @@
 Ambient Mesh
 
 O Istio tem um modo chamado side carless, conhecido como Ambient mesh, que é relativamente mais leve e
-mais rápido que o sidecar mode. ambient mesh divide o sidecar mode em dois;
-Z tunnel
+mais rápido que o sidecar mode. ambient mesh divide o sidecar-mode em dois;
+Z-tunnel
 Waypoint proxy
 
-Z tunnel é baseado no agent deployed como um Daemonset atrávez de todos os nodes. O mesmo intercepta inbound
-e outbound traffic. Manuseia a criptografia e a descriptografia ou seja (mTLS). Autenticação, e também os 
-logs para o pod traffic. ele opera na camada 4 de Network. Que é um load balancing, service discovery, 
+Z-tunnel é baseado no agent deployed como um Daemonset atrávez de todos os nodes. O mesmo intercepta inbound
+e outbound traffic. Manuseia a criptografia e a descriptografia ou seja (mTLS). Autenticação, e também os
+logs para o pod traffic. ele opera na camada 4 de Network. Que é um load balancing, service discovery,
 roteamento e healhty endpoints.
 
 Waypoint é um proxy que roda como um pod, não um container é standalone workload, não como um sidecar proxy 
@@ -17,7 +17,7 @@ E eles não suportam algumas coisas, como por exemplo;
 \_Timeout retries
 \_mirroring
 
-Ponto de observação é que o exame cobra apenas instalação do ambient mode e  como labear os namepaces.
+Ponto de observação é que o exame cobra apenas instalação do ambient mode e como labear os namepaces.
 
 Instalação
 
