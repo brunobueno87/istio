@@ -193,7 +193,7 @@ Vamos em frente e agora, vamos começar a entender  Virtual Services, vá para o
 
 Limpe o lab;
 \_kubectl delete ns test
-\_kubectl delete peerauthentications.security.istio.io  dafault
+\_kubectl delete peerauthentications.security.istio.io  default
 \_kubectl delete -f https://raw.githubusercontent.com/istio/istio/release-1.11/samples/bookinfo/platform/kube/bookinfo.yaml
 \_kubectl label namespace default istio-injection-
 
