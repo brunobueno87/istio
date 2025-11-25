@@ -106,7 +106,7 @@ Sendo assim agora vamos injetar o istio no namespace de test;
     \_kubectl exec -ti -n test test -- /bin/bash
     \_Faça uma nova chamada curl;
     \_curl -i httpbin.default.svc:8000
-    \_Agora é esperado uma saida 503 - Verifique.
+    \_Agora é esperado uma saida 404 - Verifique.
 
 Volte a porta do virtual service para 8000 e faça uma nova chamada;
 \_vim virtual_service.yaml

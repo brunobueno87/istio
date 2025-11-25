@@ -225,3 +225,4 @@ Agora rode um pod de teste;
 
 Limpando o lab;
 \_kubectl delete pod test
+\_kubectl delete -f service_entry_v2.yaml

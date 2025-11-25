@@ -2,7 +2,7 @@ Gateways
 
 Gateways são o ponto de entrada do "mundo externo" para seus services de istio. Eles são opcionais ou seja 
 você não precisa dele para seus services, porém se por algum motivo você tenha que expor seu workload para o 
-mundo externo é atravéz dele que você pode fazer isso.
+mundo externo é através dele que você pode fazer isso.
 
 Nós temos 2 tipos de gateways para o istio. O primeiro que vamos falar sobre é o ingress gateway que é usado 
 principalmente para gerenciar o tráfego de entrada ao seu cluster. O segundo que vamos abordar é o egress 
@@ -42,7 +42,7 @@ Incoming Traffic Flow - Ingress Gateway
 Tudo começa com o cliente externo chamando o endpoint de ingress gateway
 \_O ingress gateway que é um pod envoy recebe a chamada, trata ela, verificando 
   a config do gateway, em seguida consulta a qual virtual services essa chamada pertence.
-  \_Chegando no virtual service ele determina para onde o trafego vai que finanlmente chega 
+  \_Chegando no virtual service ele determina para onde o trafego vai que finalmente chega 
     em algum workload do k8s.
     \_O workload lida com a requisição e da uma resposta.
 
