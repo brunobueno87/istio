@@ -12,6 +12,7 @@ Para utilizar esse tipo de release vamos precisar de uma combinação de virtual
 para espelhar o tráfego. Bom sendo assim vamos em frente e bora de Hands-on para animar =D
 OBS; Se você vem seguindo o lab passo a passo provavelmente nesse ponto você esta sem o seu istio no cluster
 Então providencie a instalação antes de seguir em frente.
+OBS-2; Para que o mirroring seja possivel precisamos de um conjunto de virtual service e destination rules.
 
 Vamos começar verificando o cluster;
 \_kubectl get ns --show-labels
@@ -83,7 +84,7 @@ spec:
     app: echo-server
 
 Aplique;
-\_kubectl apply -f svc.yaml
+\_kubectl apply -f echo_svc.yaml
   \_Verifique;
     \_kubectl get svc
 

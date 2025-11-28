@@ -70,7 +70,7 @@ Aplique;
   \_Verifique;
      \_kubectl get svc
 
-Agora vamos implementar uma app de teste. É uma app no estilo laod tester. Rode o comando;
+Agora vamos implementar uma app de teste. É uma app no estilo load tester. Rode o comando;
 \_kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.25/samples/httpbin/sample-client/fortio-deploy.yaml
   \_Verifique;
      \_kubectl get pods

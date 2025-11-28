@@ -3,7 +3,7 @@ Securing Workloads
 O que veremos ?
 \_1. Introducing the concept of Zero-trust Architecture.
 \_2. Exploring Istio's Authentication resource and its configurations.
-\_3. Explaining how encrypted traffic is habdled in Istio.
+\_3. Explaining how encrypted traffic is handled in Istio.
 \_4. Discussing the role of authentication after authentication.
 \_5. Explaining how Istio's Authorization resource controls access using fine-grained policies.
 \_6. Analyzing the complexity involved in managing authorization rules.
