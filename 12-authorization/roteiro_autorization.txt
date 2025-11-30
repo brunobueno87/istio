@@ -9,7 +9,7 @@ e com o namespace default com istio injetado)
 
 Verifique o lab;
 \_kubectl get ns --show-labels
-   \_Confirme de o namespace default possui o istio injetado
+   \_Confirme se o namespace default possui o istio injetado
 
 Show, estando tudo certo entregue a app httpbin no namespace default;
 \_kubectl apply -f ~/istio/samples/httpbin/httpbin.yaml
@@ -97,13 +97,12 @@ spec:
 		  \_Veja que agora retorna um 200
 
 Caso seu lab não tenha, crie um namespace com o nome app e injete o istio nele, também faça a entrega de um pod
-de test (Sim, não tem sequencias de comandos aqui até esse momento já fizemos isso em outros labs ....)
-Brinks segue comandos;
+de test;
 \_kubectl label namespaces app istio-injection=enabled
 \_kubectl run test --image=nginx -n app
 \_kubectl -n app get pod
 
-Show, estando tudo certo rode uma chamada curl de dentro do pod de test para a app httpbin;
+Show, estando tudo certo rode uma chamada curl de dentro do pod de test no namespace app para a app httpbin;
 \_kubectl exec -ti test -n app -- curl --head httpbin.default.svc:8000
   \_Aqui é esperado um 403, devido o fato de apenas o namespace test pode fazer chamadas, Vamos ajustar isso adicionando o namespace app.
     \_vim auth_policy.yaml
@@ -208,7 +207,7 @@ Show agora rode a app bookinfo;
 \_kubectl apply -f ~/istio/samples/bookinfo/platform/kube/bookinfo.yaml
   \_Verifique;
     \_kubectl get pod
-      \_Aguaede todos os pods ficarem 2/2
+      \_Aguarde todos os pods ficarem 2/2
 
 Um ponto de observação é, sempre tome cuidado com politicas de DENY e ALLOW no istio porque por padrão as 
 policys de DENY sempre vencem. Isso posto, vamos fazer uma policy que negue tudo;
