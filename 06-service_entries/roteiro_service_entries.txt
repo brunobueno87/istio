@@ -49,7 +49,7 @@ This will install the Istio 1.18.2 demo profile with ["Istio core" "Istiod" "Ing
 Making this installation the default for injection and validation.
 
 Injete a label no namespace;
-\_kubectl label namespace test istio-injection=enabled
+\_kubectl label namespace default istio-injection=enabled
   \_Rode um container de test;
     \_kubectl run test --image=nginx
       \_Verifique;
