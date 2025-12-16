@@ -127,6 +127,7 @@ Sequencia de comandos necessário para deixar o cluster limpo se necessário;
 2. Create stable e canary revision tags e associe eles para as respectivas revisions;
 \_istioctl tag set prod-stable --revision 1-26-1
 \_istioctl tag set prod-canary --revision 1-27-1
+\_istioctl tag list
 
 3. Crie namespaces e coloque a label, para mapear para a respectiva revision tags;
 \_kubectl create ns app-ns-1
