@@ -21,7 +21,7 @@ Remumo do Fluxo;
 
 E agora já sabe.... Vambora de Hands-on =)
 
-Boa, como sempre seguimos o principio que o cluster esta "limpo". (Para esse lab utilizaremos a versão 1.28 do Istio)
+Boa, como sempre seguimos o principio que o cluster esta "limpo". (Para esse lab utilizaremos a versão 1.18 do Istio)
 Então vamos fazer um dump e instalar o istio com a modificação necessária;
 
 \_istioctl profile dump demo -o yaml > demo.yaml
