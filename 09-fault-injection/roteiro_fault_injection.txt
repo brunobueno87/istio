@@ -242,7 +242,7 @@ server: envoy
 ---
 
 Show e isso é tudo para o nosso lab de fault-injection. Limpe o lab e bora para o proximo tópico que será o 
-Reques Timeouts & Retries
+Request Timeouts & Retries
 
 Limpando o lab;
 \_kubectl delete -f vs.yaml
